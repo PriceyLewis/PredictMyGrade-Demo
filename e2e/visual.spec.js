@@ -32,7 +32,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
             const response = await page.goto(url);
             expect(response.status()).toBe(200);
             expect(new URL(page.url()).pathname).toBe(new URL(url, baseURL).pathname);
-            await expect(page.locator('main')).toBeVisible();
+            await expect(page.locator('main.page')).toBeVisible();
             const consent = page.getByRole('button', { name: 'Only essential', exact: true });
             if (await consent.isVisible()) await consent.click();
             await page.evaluate(() => document.fonts.ready);
@@ -55,6 +55,9 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
               }).slice(0, 20).map(element => ({ tag: element.tagName, class: element.className })),
             }));
             await testInfo.attach('layout', { body: JSON.stringify({ ...layout, errors }, null, 2), contentType: 'application/json' });
+            if (layout.documentWidth > viewport.width + 1 || errors.length) {
+              console.log('VISUAL_DIAGNOSTIC', testInfo.titlePath.join(' / '), JSON.stringify({ ...layout, errors }));
+            }
             expect.soft(layout.documentWidth, 'Page should not scroll horizontally').toBeLessThanOrEqual(viewport.width + 1);
             expect.soft(errors, 'Uncaught browser errors').toEqual([]);
           } finally {
