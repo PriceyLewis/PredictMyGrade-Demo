@@ -21,7 +21,7 @@ module.exports = defineConfig({
     video: 'retain-on-failure',
   },
   webServer: {
-    command: 'powershell -NoProfile -Command "python manage.py migrate; python manage.py runserver 127.0.0.1:8001"',
+    command: 'python manage.py migrate && python manage.py runserver 127.0.0.1:8001',
     env: {
       ...process.env,
       DJANGO_SECRET_KEY: 'dev-secret-key',
