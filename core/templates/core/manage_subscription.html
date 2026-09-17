@@ -1,7 +1,6 @@
-
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Manage Subscription{% endblock %}
+{% block title %}Manage Demo Plan{% endblock %}
 {% block content %}
 <div class="container py-4">
   <div class="row justify-content-center">
@@ -9,10 +8,10 @@
       <div class="card shadow-sm border-0">
         <div class="card-body p-4">
           {% if has_premium_access and not profile.is_trial_active %}
-            <h2 class="h4 mb-3">PredictMyGrade Premium</h2>
+            <h2 class="h4 mb-3">PredictMyGrade Premium Demo</h2>
             <p class="text-muted mb-4">
               {% if billing_is_mock %}
-                Demo billing is active for this portfolio build. The controls below simulate plan management and never charge a real payment method.
+                This is a simulated subscription for portfolio review. Change plans or return to Free below; no card, Stripe checkout, or real payment is involved.
               {% else %}
                 Manage your billing details or cancel your membership below.
               {% endif %}
@@ -30,7 +29,7 @@
                   {% endif %}
                 </dd>
                 {% if subscription.current_period_end %}
-                  <dt class="col-sm-4">Next renewal</dt>
+                  <dt class="col-sm-4">Demo renewal</dt>
                   <dd class="col-sm-8">{{ subscription.current_period_end|date:"d M Y H:i" }}</dd>
                 {% endif %}
                 {% if subscription.cancel_at_period_end %}
@@ -38,44 +37,45 @@
                   <dd class="col-sm-8">Scheduled at period end</dd>
                 {% endif %}
                 {% if subscription.days_remaining is not None %}
-                  <dt class="col-sm-4">Next renewal</dt>
+                  <dt class="col-sm-4">Demo period</dt>
                   <dd class="col-sm-8">{{ subscription.days_remaining }} day{{ subscription.days_remaining|pluralize }} remaining</dd>
                 {% endif %}
               </dl>
+            {% endif %}
+
+            {% if billing_is_mock %}
+              <div class="alert alert-info small" role="status">
+                Reviewer controls: use these to verify both Premium and Free feature gates without leaving the app.
+              </div>
+              <div class="d-flex flex-wrap gap-2 mb-2">
+                <button type="button" class="btn btn-primary js-demo-plan" data-demo-plan="monthly">Switch to Demo Monthly</button>
+                <button type="button" class="btn btn-primary js-demo-plan" data-demo-plan="yearly">Switch to Demo Yearly</button>
+                <button type="button" class="btn btn-outline-danger" id="cancel-subscription">Return to Free</button>
+              </div>
             {% else %}
-              <div class="alert alert-warning small" role="alert">
-                We could not load billing details right now. You can still manage your subscription using the buttons below.
+              <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-primary" id="open-billing" {% if not portal_available %}disabled{% endif %}>Manage Billing</button>
+                <button type="button" class="btn btn-outline-danger" id="cancel-subscription">Cancel Subscription</button>
               </div>
             {% endif %}
 
-            <div class="d-flex flex-wrap gap-2">
-              <button type="button" class="btn btn-primary" id="open-billing" {% if not portal_available %}disabled{% endif %}>
-                {% if billing_is_mock %}Open Mock Billing{% else %}Manage Billing{% endif %}
-              </button>
-              <button type="button" class="btn btn-outline-danger" id="cancel-subscription">
-                {% if billing_is_mock %}End Demo Subscription{% else %}Cancel Subscription{% endif %}
-              </button>
-            </div>
-
             <p class="text-muted small mt-3 mb-0">
               {% if billing_is_mock %}
-                Demo cancellation updates the portfolio state immediately so reviewers can see the downgrade flow without touching real billing.
+                Returning to Free updates the local demo account immediately. You can re-enable Premium again from the Upgrade page at any time.
               {% else %}
                 Cancelling keeps your premium access until the end of the current billing period. You can resume anytime from the billing portal.
               {% endif %}
             </p>
           {% elif profile.is_trial_active %}
             <h2 class="h4 mb-3">Trial Active</h2>
-            <p class="text-muted mb-4">
-              Your free trial is active. Upgrade now to keep premium insights when the trial ends.
-            </p>
+            <p class="text-muted mb-4">Your free trial is active. Upgrade now to keep premium insights when the trial ends.</p>
             <a href="{% url 'core:upgrade' %}" class="btn btn-warning">Upgrade to Premium</a>
           {% else %}
-            <h2 class="h4 mb-3">Free Plan</h2>
+            <h2 class="h4 mb-3">Free Demo Plan</h2>
             <p class="text-muted mb-4">
-              Upgrade to unlock AI insights, deep analytics, and personalised mentoring.
+              You are currently seeing the Free feature set. Use the mock upgrade to unlock Premium-only screens; no payment details are requested.
             </p>
-            <a href="{% url 'core:upgrade' %}" class="btn btn-warning">Upgrade to Premium</a>
+            <a href="{% url 'core:upgrade' %}" class="btn btn-warning">Try Premium Demo</a>
           {% endif %}
           <div id="subscription-alert" class="alert mt-4 d-none" role="alert"></div>
         </div>
@@ -95,13 +95,46 @@
   const alertBox = document.getElementById('subscription-alert');
 
   function showMessage(message, variant) {
-    if (!alertBox) {
-      return;
-    }
+    if (!alertBox) return;
     alertBox.textContent = message;
     alertBox.className = 'alert mt-4 alert-' + (variant || 'info');
     alertBox.classList.remove('d-none');
   }
+
+  document.querySelectorAll('.js-demo-plan').forEach((button) => {
+    button.addEventListener('click', async () => {
+      if (!csrfToken) {
+        showMessage('Missing security token. Please refresh the page and try again.', 'danger');
+        return;
+      }
+      const plan = button.dataset.demoPlan || 'monthly';
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Switching...';
+      try {
+        const response = await fetch('{% url "core:create_checkout_session_default" %}', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+          },
+          body: new URLSearchParams({ plan_type: plan })
+        });
+        const data = await response.json();
+        if (data.ok && data.checkout_url) {
+          window.location.href = data.checkout_url;
+          return;
+        }
+        showMessage(data.error || 'Unable to switch the demo plan.', 'danger');
+      } catch (error) {
+        showMessage('Unable to switch the demo plan. Please try again.', 'danger');
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    });
+  });
 
   const portalBtn = document.getElementById('open-billing');
   if (portalBtn) {
@@ -126,15 +159,10 @@
       })
         .then((response) => response.json())
         .then((data) => {
-          if (data.ok && data.portal_url) {
-            window.location.href = data.portal_url;
-          } else {
-            showMessage(data.error || 'Unable to open the billing portal. Please try again later.', 'danger');
-          }
+          if (data.ok && data.portal_url) window.location.href = data.portal_url;
+          else showMessage(data.error || 'Unable to open the billing portal.', 'danger');
         })
-        .catch(() => {
-          showMessage('Unable to open the billing portal. Please try again later.', 'danger');
-        })
+        .catch(() => showMessage('Unable to open the billing portal.', 'danger'))
         .finally(() => {
           portalBtn.disabled = false;
           portalBtn.textContent = originalText;
@@ -149,12 +177,15 @@
         showMessage('Missing security token. Please refresh the page and try again.', 'danger');
         return;
       }
-      if (!confirm('Cancel premium at the end of this billing period?')) {
-        return;
-      }
+      const isDemo = {{ billing_is_mock|yesno:"true,false" }};
+      const prompt = isDemo
+        ? 'Return this demo account to the Free plan now?'
+        : 'Cancel premium at the end of this billing period?';
+      if (!confirm(prompt)) return;
+
       cancelBtn.disabled = true;
       const originalText = cancelBtn.textContent;
-      cancelBtn.textContent = 'Cancelling...';
+      cancelBtn.textContent = isDemo ? 'Returning to Free...' : 'Cancelling...';
       fetch('{% url "core:cancel_subscription" %}', {
         method: 'POST',
         headers: {
@@ -165,30 +196,17 @@
         .then((response) => response.json())
         .then((data) => {
           if (!data.ok) {
-            showMessage(data.error || 'We could not cancel your subscription right now.', 'danger');
+            showMessage(data.error || 'We could not update your plan right now.', 'danger');
             return;
           }
-          let message = data.message;
-          if (!message) {
-            message = 'Your subscription is scheduled to end at the close of the current billing period.';
-            if (data.effective_period_end) {
-              try {
-                const endDate = new Date(data.effective_period_end * 1000);
-                message = 'Your subscription will remain active until ' + endDate.toLocaleString() + '.';
-              } catch (err) {
-                // ignore formatting errors
-              }
-            }
-            message += ' You can reactivate anytime via the billing portal.';
-          }
+          const message = data.message || (isDemo
+            ? 'Demo account returned to Free.'
+            : 'Your subscription is scheduled to end at the close of the current billing period.');
           showMessage(message, 'success');
-          if (window.showToast) {
-            window.showToast(message, 'info');
-          }
+          if (window.showToast) window.showToast(message, 'info');
+          if (isDemo) window.setTimeout(() => window.location.reload(), 450);
         })
-        .catch(() => {
-          showMessage('We could not cancel your subscription right now.', 'danger');
-        })
+        .catch(() => showMessage('We could not update your plan right now.', 'danger'))
         .finally(() => {
           cancelBtn.disabled = false;
           cancelBtn.textContent = originalText;
