@@ -31,7 +31,7 @@ from django.db.models import Avg, Count, Q, F
 from django.db.models.functions import TruncDate
 from django.core.cache import cache
 from django.core.mail import EmailMessage, send_mail
-from django.core.exceptions import DisallowedHost
+from django.core.exceptions import DisallowedHost, ValidationError
 from django.db import IntegrityError, transaction
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -5497,8 +5497,8 @@ def import_user_data(request):
             Module.objects.update_or_create(
                 user=request.user,
                 name=title[:128],
+                level=category[:12] or "UNI",
                 defaults={
-                    "level": category[:12] or "UNI",
                     "credits": credits,
                     "grade_percent": grade,
                     "completion_percent": max(0.0, min(100.0, completion)),
@@ -5550,6 +5550,7 @@ def import_user_data(request):
     return JsonResponse({"ok": True, "created": created})
 
 
+@login_required
 def export_study_plan_calendar(request):
     profile = get_profile(request.user)
     if not resolve_premium_status(request.user, profile=profile)["has_access"]:
@@ -5643,7 +5644,7 @@ def export_modules_csv(request):
     writer = csv.writer(buffer)
     writer.writerow(["Name", "Level", "Credits", "Grade Percent"])
     for module in modules:
-        writer.writerow([module.name, module.level, module.credits, module.grade_percent or ""])
+        writer.writerow([module.name, module.level, module.credits, module.grade_percent if module.grade_percent is not None else ""])
     response = HttpResponse(buffer.getvalue(), content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="modules.csv"'
     return response
@@ -5652,7 +5653,7 @@ def export_modules_csv(request):
 @login_required
 def backup_json(request):
     modules = list(
-        Module.objects.filter(user=request.user).values("name", "level", "credits", "grade_percent")
+        Module.objects.filter(user=request.user).values("name", "level", "credits", "grade_percent", "completion_percent")
     )
     data = {"modules": modules}
     response = HttpResponse(json.dumps(data, indent=2), content_type="application/json")
@@ -5741,7 +5742,7 @@ def restore_backup(request):
     if uploaded:
         try:
             payload = json.load(uploaded)
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, UnicodeDecodeError):
             messages.error(request, "The uploaded file is not valid JSON.")
             return redirect("core:dashboard")
     else:
@@ -5755,18 +5756,36 @@ def restore_backup(request):
     if payload is None:
         messages.error(request, "Upload a valid JSON backup to restore.")
         return redirect("core:dashboard")
-    modules = payload.get("modules", [])
-    if isinstance(modules, list):
-        Module.objects.filter(user=request.user).delete()
-        for module in modules:
-            Module.objects.create(
-                user=request.user,
-                name=(module.get("name") or "Module")[:128],
-                level=module.get("level", "UNI"),
-                credits=int(float(module.get("credits") or 0)),
-                grade_percent=module.get("grade_percent"),
-            )
-        messages.success(request, "Backup restored.")
+    try:
+        if not isinstance(payload, dict) or not isinstance(payload.get("modules"), list):
+            raise ValueError
+        staged = []
+        keys = set()
+        for row in payload["modules"]:
+            if not isinstance(row, dict):
+                raise ValueError
+            credits = float(row.get("credits", 0))
+            grade = row.get("grade_percent")
+            grade = None if grade in (None, "") else float(grade)
+            completion = float(row.get("completion_percent", 0))
+            if not math.isfinite(credits) or not credits.is_integer():
+                raise ValueError
+            if (grade is not None and not math.isfinite(grade)) or not math.isfinite(completion):
+                raise ValueError
+            module = Module(user=request.user, name=row.get("name"), level=row.get("level", "UNI"), credits=int(credits), grade_percent=grade, completion_percent=completion)
+            module.full_clean(validate_unique=False, validate_constraints=False)
+            key = (module.name, module.level)
+            if key in keys:
+                raise ValueError
+            keys.add(key)
+            staged.append(module)
+        with transaction.atomic():
+            Module.objects.filter(user=request.user).delete()
+            Module.objects.bulk_create(staged)
+    except (ValueError, TypeError, ValidationError, IntegrityError):
+        messages.error(request, "Invalid backup. No modules were changed.")
+        return redirect("core:dashboard")
+    messages.success(request, "Backup restored.")
     return redirect("core:dashboard")
 
 

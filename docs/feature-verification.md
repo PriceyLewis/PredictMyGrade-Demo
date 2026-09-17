@@ -16,6 +16,7 @@ browser, integration or accessibility requirement is covered.
 | Settings assistant persona | Every available choice persists; invalid selection preserves current value; browser description and reload |
 | Settings celebrations | Both directions persist; browser checkbox reload |
 | Settings CSV/JSON exports | Download content and headers; ownership filtering; zero-grade preservation; export history |
+| Backup/import | JSON round trip including completion and zero marks; invalid restore preserves original records; same-name modules at different levels survive full CSV import |
 | Settings support forms | Required fields/attachment; bug attachment and feedback submission; visible email failure; in-memory mail only |
 | Settings navigation | Help, methodology, release notes, privacy dashboard, subscription page; deletion confirmation and Cancel |
 | Account deletion | Disposable owner's data removed; another account preserved; failed subscription cancellation blocks deletion; no live account deletion |
@@ -32,8 +33,9 @@ browser, integration or accessibility requirement is covered.
 
 - Live Google/GitHub/Microsoft sign-in, Stripe checkout/webhooks/portal, SMTP
   delivery and paid AI responses require separately configured sandbox credentials.
-- Full backup/restore/import round trips, all AI widget interactions, voice output,
+- Malformed CSV imports, all AI widget interactions, voice output,
   complete UCAS scenario matrices and every admin action are not yet exhaustively tested.
+- Backup History currently displays illustrative demo entries, not a durable historical backup store.
 - Scheduled jobs have unit coverage; production scheduler/broker operation is not established.
 - Screenshot captures are not pixel baselines, a contrast audit or a complete
   accessibility audit. Firefox, WebKit and physical-device behavior remain unverified.

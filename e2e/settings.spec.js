@@ -114,4 +114,20 @@ test.describe('settings feature contracts', () => {
     await expect(page).toHaveURL(/#aiAssistantPanel$/);
     await expect(page.locator('#aiAssistantPanel')).toBeVisible();
   });
+
+  test('cookie preferences persist and can be changed', async ({ page }) => {
+    await page.goto('/settings/');
+    for (const enabled of [true, false]) {
+      await page.locator('[data-cookie-open]').click();
+      await expect(page.locator('[data-cookie-modal]')).toBeVisible();
+      await page.locator('[data-cookie-analytics]').setChecked(enabled);
+      await page.locator('[data-cookie-save]').click();
+      await expect(page.locator('[data-cookie-modal]')).toBeHidden();
+      await page.reload();
+      await page.locator('[data-cookie-open]').click();
+      if (enabled) await expect(page.locator('[data-cookie-analytics]')).toBeChecked();
+      else await expect(page.locator('[data-cookie-analytics]')).not.toBeChecked();
+      await page.locator('[data-cookie-close]').click();
+    }
+  });
 });
