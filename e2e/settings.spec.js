@@ -127,7 +127,7 @@ test.describe('settings feature contracts', () => {
       await page.locator('[data-cookie-open]').click();
       if (enabled) await expect(page.locator('[data-cookie-analytics]')).toBeChecked();
       else await expect(page.locator('[data-cookie-analytics]')).not.toBeChecked();
-      await page.locator('[data-cookie-close]').click();
+      await page.locator('[data-cookie-modal]').getByRole('button', { name: 'Close', exact: true }).click();
     }
   });
 });
