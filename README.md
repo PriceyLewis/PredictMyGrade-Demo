@@ -1,46 +1,67 @@
-# PredictMyGrade
+# PredictMyGrade Demo
 
-PredictMyGrade is a portfolio Django product mockup for student progress tracking, grade forecasting, study planning, and premium upsell journeys. It is intended for demonstration and local review only, not as a live student service or production SaaS.
+PredictMyGrade is a portfolio Django product demo for student progress tracking, grade forecasting, study planning, and freemium product journeys. **This repository is intentionally a demo, not a live product or production SaaS.**
 
-## Mock-Only Status
+## Demo-Only Contract
 
-- This repository should be treated as a demo/portfolio build.
-- Billing and subscription flows are simulated only.
-- The app contains real Django plumbing such as authentication, database persistence, and optional integration hooks, but those exist to support the mock product experience locally.
-- Nothing in this repository should be presented as a live commercial, legal, or compliance-ready platform without further work.
+The repository is designed so a recruiter or reviewer can explore realistic product behaviour without real billing or paid AI dependencies:
+
+- Billing and subscriptions are simulated locally only.
+- Checkout always returns to a local PredictMyGrade success route; no Stripe/card page is used.
+- Reviewers can move from Free -> Premium -> Free to verify feature gating.
+- Monthly and yearly prices are illustrative product-design values, not purchasable plans.
+- The demo sign-in creates a disposable local account; third-party OAuth buttons are intentionally hidden.
+- While mock billing is enabled, assistant replies are deterministic local demo responses and external OpenAI clients are blocked.
+- Legal/privacy/cookie pages demonstrate product surface area only and are not production/compliance claims.
 
 ## What This Project Demonstrates
 
-- End-to-end product design rather than a single isolated feature
-- Django application architecture with authentication, admin tooling, services, and background-task hooks
-- AI-assisted demo flows with safe fallback behaviour when no API key is configured
-- Premium feature gating and mock billing flows suitable for demos and local review
-- Automated testing across backend and browser-level smoke flows
+- End-to-end Django product architecture rather than a single isolated feature
+- Authentication, persistence, settings, exports/imports, and account lifecycle flows
+- Free/Premium feature gating backed by real application state
+- Mock checkout, mock plan management, and downgrade behaviour
+- Academic dashboards, weighted averages, forecasting, what-if tools, goals, deadlines, snapshots, and calendar export
+- AI-style mentor/reporting experiences that remain usable without an API key
+- Backend regression tests and Playwright browser smoke coverage
+
+## Demo Walkthrough
+
+1. Open `/accounts/login/` and choose **Continue as Demo User**.
+2. Explore the Free experience and open a Premium-only feature such as AI Reports.
+3. Choose **Try Premium** and select the mock monthly or yearly plan.
+4. Confirm that Premium-only screens now open.
+5. Open **Manage plan** to switch the illustrative plan or choose **Return to Free**.
+6. Re-open a Premium-only feature to confirm that the Free gate is restored.
+
+No card number, payment provider account, OAuth account, or OpenAI API key is required for this walkthrough.
 
 ## Core Features
 
-- Student dashboard with weighted averages, progress summaries, and prediction-style demo metrics
-- Module management for university and GCSE-style workflows
-- Study planning tools, goals, deadlines, snapshots, and calendar export
-- AI-assisted reporting, mentor chat, planning helpers, and what-if forecasting demos
-- Mock premium checkout and cancellation flows for demo and local testing
-- Admin tools for analytics, billing visibility, system health, and user management
+- Student dashboard with weighted averages, progress summaries, and prediction-style metrics
+- University, college/A-Level/BTEC, and GCSE-oriented tracking surfaces
+- Module CRUD, search, validation, persistence, import/export, and backup/restore flows
+- Study planning tools, goals, deadlines, snapshots, achievements, and calendar export
+- AI-style reporting, mentor chat, planning helpers, and what-if forecasting demos
+- Mock Premium checkout, plan switching, and immediate demo downgrade to Free
+- Settings persistence, theme controls, privacy/data controls, and feedback/bug-report surfaces
+- Admin/analytics screens for portfolio demonstration
 
 ## Tech Stack
 
 - Python / Django 5
-- SQLite for local development, PostgreSQL-ready via `DATABASE_URL`
-- django-allauth for local/demo authentication flows
-- Mock billing flow for demo-only premium upsell behaviour
-- OpenAI Python SDK for optional local AI integration
-- Playwright for end-to-end smoke tests
+- SQLite for local/demo use; database configuration remains compatible with PostgreSQL for engineering reference
+- django-allauth plumbing, with third-party provider UI intentionally hidden in this demo
+- Local mock billing state; no payment processor integration is required
+- Deterministic local assistant responses in demo mode
+- Playwright for end-to-end browser smoke tests
 
 ## Architecture Notes
 
-- `core/` contains the main product logic: models, views, forms, services, tasks, and tests
-- `config/` holds Django settings, URL routing, and deployment configuration
+- `core/` contains models, views, forms, services, tasks, decorators, and tests
+- `config/` contains Django settings, URL routing, WSGI/ASGI configuration
 - `templates/` and `static/` provide the server-rendered frontend
-- `e2e/` contains Playwright smoke coverage for key user journeys
+- `e2e/` contains Playwright browser coverage, including Free -> Premium -> Free demo billing
+- `docs/feature-verification.md` records audited feature coverage and remaining limitations
 
 ## Local Setup
 
@@ -59,72 +80,42 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Open `http://127.0.0.1:8000/`.
+Open `http://127.0.0.1:8000/` and use the demo sign-in button.
 
 ## Environment Variables
 
-Required:
+Required for Django startup:
 
 - `DJANGO_SECRET_KEY`
 - `DATABASE_URL`
 
-Local development can use SQLite:
+Recommended local/demo values:
 
 ```env
+DJANGO_SECRET_KEY=dev-secret-key-change-me
 DATABASE_URL=sqlite:///db.sqlite3
+DJANGO_DEBUG=true
+BILLING_MOCK_MODE=1
+ONBOARDING_SAMPLE_DATA_ENABLED=true
 ```
 
-Useful local defaults:
-
-- `DJANGO_DEBUG=true`
-- `DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost,testserver`
-- `BILLING_MOCK_MODE=1`
-- `OPENAI_API_KEY=`
-- `OPENAI_CHAT_MODEL=gpt-4o-mini`
-- `AI_CHAT_DAILY_LIMIT=20`
-- `ONBOARDING_SAMPLE_DATA_ENABLED=true`
-
-Optional integrations:
-
-- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-- `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`
-- `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET`, `MICROSOFT_TENANT_ID`
-- `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`
+`BILLING_MOCK_MODE` is intentionally enabled by the demo configuration. With mock billing enabled, the mentor path uses local simulated responses and the external OpenAI client refuses to initialise even if somebody accidentally supplies an API key.
 
 ## Main Routes
 
-- `/` and `/dashboard/`
-- `/modules/`
-- `/what-if/`
-- `/reports/ai/`
-- `/pricing/`
-- `/upgrade/`
-- `/manage-subscription/`
-- `/settings/`
-- `/admin/hub/`
-
-## Demo Notes
-
-This repository is mock-first:
-
-- billing and checkout are simulated locally
-- no real payment method is collected
-- `/payment/success/` upgrades the signed-in user in-app for demo purposes
-- `/billing/cancel/` cancels the mock subscription
-- authentication and saved records exist for local testing and portfolio walkthroughs
-- optional AI behaviour can call OpenAI if `OPENAI_API_KEY` is configured, but otherwise falls back to preview/demo behaviour
-- legal and privacy pages should be treated as placeholder portfolio content unless reviewed and replaced for a real launch
-
-## AI Behavior
-
-- AI features use `OPENAI_API_KEY` only when you explicitly configure it.
-- Some premium assistant and forecast flows fall back to non-live or preview behaviour when no API key is configured.
-- Free users still have limited preview behaviour in parts of the assistant flow.
-- If you want the project to remain strictly mock-only, leave `OPENAI_API_KEY` blank.
+- `/accounts/login/` - disposable demo sign-in
+- `/` and `/dashboard/` - main dashboard
+- `/modules/` - module management
+- `/what-if/` - scenario simulation
+- `/reports/ai/` - Premium-gated AI-style report experience
+- `/pricing/` and `/upgrade/` - mock plan selection
+- `/manage-subscription/` - mock plan switching and return-to-Free controls
+- `/settings/` - account/app preferences and data tools
+- `/demo-notice/` - explicit demo limitations
 
 ## Testing
 
-Backend test suite:
+Backend checks:
 
 ```powershell
 $env:DJANGO_SECRET_KEY='dev-secret-key'
@@ -134,23 +125,15 @@ python manage.py check
 python manage.py test
 ```
 
-Playwright smoke tests:
+Playwright browser tests:
 
 ```powershell
 npm install
 npm run test:e2e
 ```
 
-The Playwright config boots Django on `http://127.0.0.1:8001` with mock billing and a local SQLite database. Session state used by the tests is generated automatically during `globalSetup`.
+The Playwright configuration runs Django against a local SQLite database with mock billing and in-memory email. Browser coverage includes the demo login surface, Premium upgrade, Premium-only access, mock plan controls, and downgrade back to Free.
 
-## Deployment
+## Not A Production Runbook
 
-Production deployment guidance lives in [DEPLOYMENT.md](DEPLOYMENT.md).
-
-In short:
-
-- use `DJANGO_DEBUG=false`
-- use a strong `DJANGO_SECRET_KEY`
-- set `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS`
-- prefer PostgreSQL in hosted environments
-- run `python manage.py collectstatic --noinput` before serving the app
+`DEPLOYMENT.md` is retained only as engineering-reference material. This demo is not represented as ready for public launch. A real product would require a separate security, privacy, legal, billing, infrastructure, monitoring, support, abuse-prevention, and operational workstream rather than simply enabling hidden integrations in this repository.
