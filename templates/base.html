@@ -120,6 +120,11 @@
           <li><a class="site-nav__link" href="{% url 'account_login' %}">Log in</a></li>
           <li><a class="site-nav__link" href="{% url 'account_signup' %}">Create account</a></li>
         {% endif %}
+        <li class="mobile-only"><button class="site-nav__link site-nav__button" type="button" data-theme-toggle><span data-theme-toggle-icon aria-hidden="true">&#9789;</span><span data-theme-toggle-label>Dark mode</span></button></li>
+        {% if request.user.is_authenticated %}
+          <li class="mobile-only"><a class="site-nav__link" href="{% url 'core:ai_assistant' %}">AI Assistant</a></li>
+          <li class="mobile-only"><a class="site-nav__link" href="{% url 'core:logout' %}">Log out</a></li>
+        {% endif %}
       </ul>
       <div class="site-nav__actions">
         <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme">

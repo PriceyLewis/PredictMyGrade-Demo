@@ -133,12 +133,12 @@
     <button type="submit" class="btn">Run Simulation</button>
   </form>
 
-  {% if simulated_points %}
+  {% if outcomes %}
     <div class="results">
       <h3>Predicted Outcomes</h3>
       <ul>
-        {% for s,c in simulated_points|zip:classifications %}
-          <li>📊 {{ s }}% — {{ c }}</li>
+        {% for outcome in outcomes %}
+          <li>📊 {{ outcome.average }}% — {{ outcome.classification }}</li>
         {% endfor %}
       </ul>
     </div>

@@ -4,12 +4,9 @@ from .models import Module
 class ModuleForm(forms.ModelForm):
     class Meta:
         model = Module
-        fields = [
-            "level", "name", "year", "assessment_type",
-            "grade_percent", "grade_letter", "credits", "weight"
-        ]
+        fields = ["level", "name", "grade_percent", "credits", "completion_percent"]
         widgets = {
-            "level": forms.Select(attrs={"onchange": "toggleHelp()"}),
             "grade_percent": forms.NumberInput(attrs={"step": "0.1", "min": "0", "max": "100"}),
-            "weight": forms.NumberInput(attrs={"step": "0.1", "min": "0"}),
+            "credits": forms.NumberInput(attrs={"step": "1", "min": "0", "max": "100"}),
+            "completion_percent": forms.NumberInput(attrs={"step": "0.1", "min": "0", "max": "100"}),
         }

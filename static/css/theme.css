@@ -306,6 +306,19 @@ a:focus {
   box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.25);
 }
 
+.mobile-only {
+  display: none;
+}
+
+.site-nav__button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
 .site-nav__actions {
   display: inline-flex;
   align-items: center;
@@ -449,6 +462,16 @@ a:focus {
 
   .site-nav__links.is-open {
     display: flex;
+  }
+
+  .site-nav__links .mobile-only {
+    display: block;
+    width: 100%;
+  }
+
+  .site-nav__links .site-nav__link {
+    display: flex;
+    width: 100%;
   }
 
   .site-nav__actions {

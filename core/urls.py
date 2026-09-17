@@ -150,7 +150,6 @@ urlpatterns = [
 
 STATIC_PAGES = {
     "college/": ("college", "core/college.html"),
-    "snapshot/history/": ("snapshot_history", "core/snapshot_history.html"),
     "study-suggestions/": ("study_suggestions", "core/study_suggestions.html"),
     "smart-insights/": ("smart_insights_page", "core/smart_insights.html"),
     "help/": ("help", "core/help.html"),
@@ -158,7 +157,6 @@ STATIC_PAGES = {
     "report-bug/": ("bug_report", "core/report_bug.html"),
     "how-it-works/": ("how_it_works", "core/how_it_works.html"),
     "welcome-tour/": ("welcome_tour", "core/welcome_tour.html"),
-    "what-if/basic/": ("what_if_basic", "core/what_if_basic.html"),
     "demo-notice/": ("demo_notice", "core/demo_notice.html"),
     "privacy/": ("privacy_policy", "core/privacy_policy.html"),
     "privacy-policy/": ("privacy_policy_alias", "core/privacy_policy.html"),
@@ -172,6 +170,11 @@ STATIC_PAGES = {
 
 for url, (name, template) in STATIC_PAGES.items():
     urlpatterns.append(path(url, TemplateView.as_view(template_name=template), name=name))
+
+urlpatterns += [
+    path("snapshot/history/", views.snapshot_history, name="snapshot_history"),
+    path("what-if/basic/", views.what_if_basic, name="what_if_basic"),
+]
 
 
 if settings.DEBUG:
