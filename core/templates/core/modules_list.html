@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Modules{% endblock %}
 {% block extra_css %}
 <style>
@@ -22,7 +23,7 @@
   <section class="card" aria-labelledby="saved-modules-title">
     <div class="module-toolbar"><h2 id="saved-modules-title">Saved modules</h2><div class="module-toolbar__controls"><label class="sr-only" for="searchModules">Search modules</label><input id="searchModules" type="search" placeholder="Search modules"><label class="sr-only" for="sortSelect">Sort modules</label><select id="sortSelect"><option value="grade_percent">Highest grade</option><option value="name">Name A–Z</option><option value="credits">Most credits</option><option value="level">Study level</option></select></div></div>
     <div class="table-responsive"><table class="modules-table"><thead><tr><th>Module</th><th>Level</th><th>Credits</th><th>Grade</th><th>Status</th><th>Action</th></tr></thead><tbody id="moduleBody">
-      {% for module in modules %}<tr data-id="{{ module.pk }}">
+      {% for module in modules %}<tr data-id="{{ module.pk }}" data-update-url="{% url 'core:module_update' module.pk %}">
         <td><input class="module-input" data-field="name" value="{{ module.name }}" maxlength="128" aria-label="Module name"></td>
         <td><select class="module-input" data-field="level" aria-label="Study level"><option value="UNI" {% if module.level == 'UNI' %}selected{% endif %}>University</option><option value="ALEVEL" {% if module.level == 'ALEVEL' %}selected{% endif %}>A-Level</option><option value="BTEC" {% if module.level == 'BTEC' %}selected{% endif %}>BTEC</option><option value="GCSE" {% if module.level == 'GCSE' %}selected{% endif %}>GCSE</option></select></td>
         <td><input class="module-input" data-field="credits" type="number" min="0" max="100" step="1" value="{{ module.credits }}" aria-label="Credits"></td>
@@ -35,11 +36,5 @@
 </section>
 {% endblock %}
 {% block extra_js %}
-<script>
-(()=>{const csrf=()=>document.querySelector('[name="csrfmiddlewaretoken"]')?.value||'';const toast=(message,type='success')=>window.showToast?.(message,type);const body=document.getElementById('moduleBody');const addForm=document.getElementById('addForm');
-addForm?.addEventListener('submit',async event=>{event.preventDefault();const button=addForm.querySelector('button[type="submit"]');button.disabled=true;button.textContent='Adding…';try{const response=await fetch(addForm.action,{method:'POST',headers:{'X-CSRFToken':csrf(),'X-Requested-With':'XMLHttpRequest'},body:new FormData(addForm)});const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error||'Unable to add module.');window.location.reload()}catch(error){toast(error.message,'error');button.disabled=false;button.textContent='Add module'}});
-body?.addEventListener('change',async event=>{const input=event.target.closest('[data-field]');if(!input)return;const row=input.closest('tr[data-id]');const status=row.querySelector('.module-status');input.setAttribute('aria-invalid','false');status.textContent='Saving…';const payload=new URLSearchParams({field:input.dataset.field,value:input.value});try{const response=await fetch(`/modules/update/${row.dataset.id}/`,{method:'POST',headers:{'X-CSRFToken':csrf()},body:payload});const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error||'Unable to save change.');status.textContent='Saved'}catch(error){input.setAttribute('aria-invalid','true');status.textContent='Not saved';toast(error.message,'error')}});
-body?.addEventListener('submit',async event=>{const form=event.target.closest('.delete-form');if(!form)return;event.preventDefault();if(!window.confirm('Delete this module?'))return;const row=form.closest('tr[data-id]');const response=await fetch(form.action,{method:'POST',headers:{'X-CSRFToken':csrf(),'X-Requested-With':'XMLHttpRequest'}});const data=await response.json().catch(()=>({}));if(!response.ok||!data.ok)return toast(data.error||'Unable to delete module.','error');row.remove();toast('Module deleted.')});
-const refreshRows=()=>{const query=document.getElementById('searchModules').value.trim().toLowerCase();const sort=document.getElementById('sortSelect').value;const rows=[...body.querySelectorAll('tr[data-id]')];rows.forEach(row=>row.hidden=!row.textContent.toLowerCase().includes(query));rows.sort((a,b)=>{const index={name:0,level:1,credits:2,grade_percent:3}[sort];const av=a.children[index].querySelector('input,select')?.value||'';const bv=b.children[index].querySelector('input,select')?.value||'';return['credits','grade_percent'].includes(sort)?Number(bv)-Number(av):av.localeCompare(bv)}).forEach(row=>body.appendChild(row))};document.getElementById('searchModules')?.addEventListener('input',refreshRows);document.getElementById('sortSelect')?.addEventListener('change',refreshRows)})();
-</script>
+<script defer src="{% static 'js/modules.js' %}"></script>
 {% endblock %}

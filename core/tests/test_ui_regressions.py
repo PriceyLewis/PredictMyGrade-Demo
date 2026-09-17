@@ -76,6 +76,43 @@ class UiRegressionTests(TestCase):
         self.assertContains(response, "67.5")
         self.assertContains(response, "Snapshot History")
 
+    def test_module_numeric_validation_does_not_silently_change_values(self):
+        module = Module.objects.create(user=self.user, name="Validation", credits=20, grade_percent=60)
+        for field, values in {
+            "credits": ["1.5", "nan", "inf", "-1", "101"],
+            "grade_percent": ["nan", "inf", "-1", "101"],
+            "name": ["   ", "x" * 129],
+        }.items():
+            for value in values:
+                with self.subTest(field=field, value=value):
+                    response = self.client.post(reverse("core:module_update", args=[module.pk]), {"field": field, "value": value})
+                    self.assertEqual(response.status_code, 400)
+                    payload = {"name": "New", "level": "UNI", "credits": "20", "grade_percent": "60", field: value}
+                    response = self.client.post(reverse("core:module_add"), payload, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+                    self.assertEqual(response.status_code, 400)
+        module.refresh_from_db()
+        self.assertEqual((module.name, module.credits, module.grade_percent), ("Validation", 20, 60))
+        self.assertEqual(Module.objects.filter(user=self.user).count(), 1)
+
+    def test_duplicate_add_and_edit_return_errors_without_corrupting_data(self):
+        Module.objects.create(user=self.user, name="Existing", level="UNI", credits=20)
+        module = Module.objects.create(user=self.user, name="Original", level="UNI", credits=20)
+        response = self.client.post(reverse("core:module_update", args=[module.pk]), {"field": "name", "value": "Existing"})
+        self.assertEqual(response.status_code, 400)
+        module.refresh_from_db()
+        self.assertEqual(module.name, "Original")
+        response = self.client.post(reverse("core:module_add"), {"name": "Existing", "level": "UNI", "credits": 20}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Module.objects.filter(user=self.user).count(), 2)
+
+    def test_inline_updates_are_scoped_to_owner(self):
+        other = get_user_model().objects.create_user(username="other-owner")
+        module = Module.objects.create(user=other, name="Private", credits=20)
+        response = self.client.post(reverse("core:module_update", args=[module.pk]), {"field": "name", "value": "Changed"})
+        self.assertEqual(response.status_code, 404)
+        module.refresh_from_db()
+        self.assertEqual(module.name, "Private")
+
     def test_basic_what_if_form_calculates_outcomes(self):
         response = self.client.post(
             reverse("core:what_if_basic"),

@@ -50,7 +50,7 @@ test.describe('core smoke flows', () => {
     await expect(page.locator('#moduleLibraryCard')).toBeVisible();
   });
 
-  test('modules page can add and delete a module', async ({ page }) => {
+  test('modules page can add, search, edit and delete a module', async ({ page }) => {
     await page.goto('/modules/');
     await page.waitForLoadState('networkidle');
     const uniqueName = `E2E Module ${Date.now()}`;
@@ -59,19 +59,32 @@ test.describe('core smoke flows', () => {
     await page.locator('#addForm input[name="credits"]').fill('15');
     await page.locator('#addForm input[name="grade_percent"]').fill('67');
     await Promise.all([
-      page.waitForURL(/\/modules\/$/),
+      page.waitForEvent('load'),
       page.locator('#addForm button[type="submit"]').click(),
     ]);
-    const row = page.locator('#moduleBody tr', { hasText: uniqueName }).first();
-    await expect(row).toContainText(uniqueName);
+    const row = page.locator('#moduleBody tr').filter({ has: page.locator(`input[data-field="name"][value="${uniqueName}"]`) });
+    await expect(row.locator('[data-field="name"]')).toHaveValue(uniqueName);
+    await page.locator('#searchModules').fill('no-matching-module-name');
+    await expect(row).toBeHidden();
+    await expect(page.locator('#emptyModules')).toContainText('No modules match');
+    await page.locator('#searchModules').fill(uniqueName);
+    await expect(row).toBeVisible();
+    await row.locator('[data-field="grade_percent"]').fill('75');
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes('/modules/update/') && response.request().method() === 'POST'),
+      row.locator('[data-field="grade_percent"]').press('Tab'),
+    ]);
+    await expect(row.locator('.module-status')).toHaveText('Saved');
+    await page.reload();
+    await expect(row.locator('[data-field="grade_percent"]')).toHaveValue('75.0');
 
     const deleteButton = row.locator('form.delete-form button[type="submit"]');
     page.once('dialog', (dialog) => dialog.accept().catch(() => {}));
     await Promise.all([
-      page.waitForURL(/\/modules\/$/),
+      page.waitForResponse(response => response.url().includes('/modules/delete/') && response.request().method() === 'POST'),
       deleteButton.click(),
     ]);
-    await expect(page.locator('#moduleBody')).not.toContainText(uniqueName);
+    await expect(row).toHaveCount(0);
   });
 
   test('settings page updates theme preference', async ({ page }) => {

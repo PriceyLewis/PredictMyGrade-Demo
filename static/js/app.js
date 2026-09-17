@@ -104,7 +104,7 @@
         body.set("engagement_score", "0.7");
 
         const headers = {};
-        const csrfToken = getCookie("csrftoken");
+        const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]')?.value || getCookie("csrftoken");
         if (csrfToken) {
           headers["X-CSRFToken"] = csrfToken;
         }
@@ -183,7 +183,19 @@ function showToast(msg, type = "info") {
     error: "linear-gradient(to right, #ef4444, #dc2626)",
   };
   if (typeof Toastify !== "function") {
-    console.warn("PredictMyGrade: toast notification requested but Toastify is unavailable.");
+    const notification = document.createElement("div");
+    notification.setAttribute("role", type === "error" ? "alert" : "status");
+    notification.style.cssText = "position:fixed;bottom:1rem;right:1rem;z-index:10000;max-width:min(28rem,calc(100vw - 2rem));padding:1rem;border-radius:8px;background:#20243b;color:white;box-shadow:0 8px 24px #0005";
+    const message = document.createElement("span");
+    message.textContent = msg;
+    const close = document.createElement("button");
+    close.type = "button";
+    close.textContent = "Dismiss";
+    close.style.cssText = "margin-left:1rem;color:inherit;background:transparent;border:1px solid currentColor;border-radius:4px;padding:.25rem .5rem";
+    close.addEventListener("click", () => notification.remove());
+    notification.append(message, close);
+    document.body.appendChild(notification);
+    if (type !== "error") window.setTimeout(() => notification.remove(), 5000);
     return;
   }
   Toastify({
