@@ -5,39 +5,42 @@
   <header class="legal-hero">
     <h1>Demo Notice</h1>
     <p>Last updated: {% now "j F Y" %}</p>
-    <p>PredictMyGrade is a portfolio/demo build. It is intended for local review and product demonstration, not as a live commercial or compliance-ready service.</p>
+    <p>PredictMyGrade is a portfolio/demo build for showing product design and engineering work. It is not a live student service, commercial SaaS product, or compliance-ready platform.</p>
   </header>
 
   <article class="legal-card">
     <h2>What Is Mocked</h2>
     <ul>
-      <li>Billing and subscription flows are simulated.</li>
-      <li>Predictions, assistant outputs, and premium journeys are demonstration features.</li>
-      <li>Cookie, privacy, and legal-style UI pages exist as portfolio content, not audited production controls.</li>
+      <li>Billing and subscription flows are simulated locally. No card details are requested and no real payment processor is used.</li>
+      <li>Premium can be enabled, switched between illustrative monthly/yearly plans, and returned to Free so reviewers can verify feature gating.</li>
+      <li>Assistant replies are deterministic demo responses while mock billing is enabled; they do not call an external AI service.</li>
+      <li>Third-party sign-in is intentionally hidden from the demo login experience.</li>
+      <li>Cookie, privacy, and legal-style pages are portfolio content, not audited production controls.</li>
     </ul>
   </article>
 
   <article class="legal-card">
     <h2>What Is Real In The Repo</h2>
     <ul>
-      <li>The app uses real Django routing, templates, authentication, and database persistence for local testing.</li>
-      <li>Export and deletion flows operate on locally stored demo data.</li>
-      <li>Optional AI requests can call external APIs only if a reviewer explicitly configures them.</li>
+      <li>The app uses real Django routing, templates, local authentication, and database persistence for testing and demonstration.</li>
+      <li>Module changes, settings, exports, imports, backups, predictions, and plan state persist in the configured demo database.</li>
+      <li>Premium feature gates use the same application state that the mock checkout changes, so the Free/Premium walkthrough exercises real app logic without real billing.</li>
     </ul>
   </article>
 
   <article class="legal-card">
     <h2>How To Review Safely</h2>
     <ul>
-      <li>Use throwaway/demo data only.</li>
-      <li>Do not treat this repository as a launched service.</li>
-      <li>Replace all placeholder legal/policy content before any real deployment.</li>
+      <li>Use the "Continue as Demo User" button and throwaway/sample data only.</li>
+      <li>Use the mock Upgrade and Manage Plan screens to test Premium and Free states.</li>
+      <li>Do not treat this repository as a launched service or enter real payment, identity, or sensitive student information.</li>
+      <li>Production integrations, policies, security review, monitoring, support processes, and compliance work would need to be designed separately before any real launch.</li>
     </ul>
   </article>
 
   <article class="legal-card">
     <h2>Reference Pages</h2>
-    <p>If needed, the detailed placeholder pages remain available for portfolio context:</p>
+    <p>The detailed placeholder pages remain available only to demonstrate a fuller product surface:</p>
     <ul>
       <li><a href="{% url 'core:privacy_policy' %}">Privacy Policy</a></li>
       <li><a href="{% url 'core:terms_of_service' %}">Terms of Service</a></li>

@@ -12,7 +12,7 @@ except ImportError:  # pragma: no cover - handled in deployment environment
 
 
 class OpenAIConfigurationError(RuntimeError):
-    """Raised when the OpenAI client is misconfigured."""
+    """Raised when the OpenAI client is unavailable or intentionally disabled."""
 
 
 @dataclass(slots=True)
@@ -29,6 +29,10 @@ class OpenAIClient:
     """
     Thin wrapper around the OpenAI SDK that hides environment lookups and
     provides guard-rails for missing configuration.
+
+    PredictMyGrade-Demo deliberately blocks external AI while mock billing is
+    enabled. The portfolio build uses deterministic local mentor responses so a
+    reviewer cannot accidentally trigger paid API traffic by adding a key.
     """
 
     def __init__(
@@ -36,6 +40,11 @@ class OpenAIClient:
         api_key: Optional[str] = None,
         model: Optional[str] = None,
     ) -> None:
+        if getattr(settings, "BILLING_MOCK_MODE", True):
+            raise OpenAIConfigurationError(
+                "External AI is disabled while PredictMyGrade is running in demo mode."
+            )
+
         api_key = api_key or getattr(settings, "OPENAI_API_KEY", "")
         model = model or getattr(settings, "OPENAI_CHAT_MODEL", "gpt-4o-mini")
 
@@ -57,9 +66,7 @@ class OpenAIClient:
         temperature: float = 0.3,
         max_output_tokens: int = 512,
     ) -> OpenAIResponse:
-        """
-        Execute a chat completion request and normalise the response payload.
-        """
+        """Execute a chat completion request and normalise the response payload."""
         chat = self._client.chat.completions.create(
             model=self._model,
             messages=list(messages),
@@ -74,10 +81,7 @@ _cached_client: Optional[OpenAIClient] = None
 
 
 def get_openai_client() -> OpenAIClient:
-    """
-    Fetch a singleton OpenAI client instance. This avoids re-initialising the SDK
-    for every request while keeping configuration changes hot-reload friendly.
-    """
+    """Fetch a singleton OpenAI client instance outside the demo environment."""
     global _cached_client
     if _cached_client is None:
         _cached_client = OpenAIClient()

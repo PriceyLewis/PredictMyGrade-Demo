@@ -144,14 +144,53 @@ def capture_daily_progress_snapshot() -> None:
     logger.info("Daily progress snapshot run captured %s snapshots", captured)
 
 
+def _demo_chat_completion(
+    prompt: str | None = None, *, messages: list[dict[str, str]] | None = None
+) -> OpenAIResponse:
+    """Return a deterministic mentor response without calling an external API."""
+    user_message = prompt or ""
+    if messages:
+        for item in reversed(messages):
+            if item.get("role") == "user" and item.get("content"):
+                user_message = item["content"]
+                break
+
+    context_hint = ""
+    lowered = user_message.lower()
+    if "deadline" in lowered or "schedule" in lowered or "plan" in lowered:
+        context_hint = " Prioritise the nearest deadline, then split revision into short focused blocks."
+    elif "grade" in lowered or "average" in lowered or "doing" in lowered:
+        context_hint = " Use the dashboard trend and your lowest weighted module to choose the next study target."
+    elif "motivat" in lowered or "stuck" in lowered:
+        context_hint = " Pick one small task you can finish now, then reassess after a short break."
+
+    message = (
+        "Demo mentor response: focus on the highest-impact next action from your saved academic data."
+        f"{context_hint} This response is simulated for the portfolio demo; no external AI service was called."
+    )
+    return OpenAIResponse(
+        message=message,
+        raw={
+            "demo": True,
+            "provider": "mock",
+            "model": "predictmygrade-demo-mentor",
+        },
+    )
+
+
 def fetch_chat_completion(
     prompt: str | None = None, *, messages: list[dict[str, str]] | None = None
 ) -> OpenAIResponse | None:
     """
-    Utility used by views to request an AI-generated answer. Falls back to None
-    when configuration or network is missing so the caller can gracefully
-    degrade to rule-based messaging.
+    Utility used by views to request an AI-generated answer.
+
+    This repository is demo-first. While mock billing is enabled, assistant
+    replies are generated locally and deterministically so premium flows can be
+    reviewed without API keys, network access, cost, or accidental live calls.
     """
+    if getattr(settings, "BILLING_MOCK_MODE", True):
+        return _demo_chat_completion(prompt, messages=messages)
+
     try:
         client: OpenAIClient = get_openai_client()
     except OpenAIConfigurationError as exc:  # pragma: no cover - configuration dependent

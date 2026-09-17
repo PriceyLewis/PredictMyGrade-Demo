@@ -1,52 +1,48 @@
-# Optional Deployment Notes
+# Demo Hosting Notes
 
-This repository is a portfolio/demo project. It is not presented as a production-ready service, and this file should not be read as an endorsement to launch it publicly without substantial additional work.
+PredictMyGrade-Demo is a portfolio project, not a production-ready service. This file is retained only to explain how the demo may be run in a private review environment; it is **not** a launch runbook.
 
-## Purpose Of This File
+## Demo Boundary
 
-These notes exist only as developer reference material for anyone exploring how the Django app could be run outside local development. They are not a security checklist, compliance statement, or launch runbook.
+The current repository deliberately keeps the product experience mock-first:
 
-## Current Repo Reality
+- billing is local and simulated only
+- checkout never sends a reviewer to a real payment processor
+- Premium state can be enabled and removed locally to demonstrate feature gating
+- assistant replies use deterministic demo responses while mock billing is enabled
+- external AI client construction is blocked in demo mode even if an API key is accidentally supplied
+- third-party OAuth buttons are intentionally removed from the reviewer login experience
+- legal/privacy/cookie pages are portfolio UI, not production policy or compliance controls
 
-- The project is designed first for local review and portfolio demonstration.
-- Billing is mock-only in this codebase.
-- Some app behaviour is real Django plumbing, including authentication, persistence, and exports.
-- Optional AI requests can call external APIs only if a reviewer explicitly configures them.
-- Legal, privacy, and cookie content in the UI are placeholder/demo content and would need full replacement before any real launch.
+## Running The Demo Privately
 
-## If You Run It Outside Local Development
-
-Treat that as a separate engineering project. At minimum you would need to verify and redesign:
-
-- hosting and infrastructure choices
-- secrets management
-- database operations and backups
-- logging, monitoring, and incident handling
-- email delivery and domain ownership
-- security review and penetration testing
-- legal terms, privacy policy, and consent flows
-- support processes and ownership
-- age gating, moderation, and abuse handling where relevant
-
-## Minimal Technical Starting Point
-
-If you only want to experiment in a non-public environment, the current codebase still expects normal Django setup steps such as:
+For local or private portfolio review:
 
 ```bash
 pip install -r requirements.txt
-python manage.py collectstatic --noinput
 python manage.py migrate
-python manage.py createsuperuser
+python manage.py runserver
 ```
 
-You would also need to configure environment variables such as:
+The example environment uses SQLite and mock billing. Keep real payment, OAuth, SMTP and AI-provider credentials out of the demo environment.
 
-- `DJANGO_SECRET_KEY`
-- `DATABASE_URL`
-- `DJANGO_ALLOWED_HOSTS`
-- `DJANGO_CSRF_TRUSTED_ORIGINS`
-- `OPENAI_API_KEY` only if you intentionally want external AI calls
+## What A Real Product Would Require
 
-## Recommendation
+Turning this repository into a live service should be treated as a separate engineering project rather than a configuration change. At minimum that work would need independent design and review for:
 
-For this portfolio repository, keep usage local unless you are deliberately converting it into a real product and are prepared to replace the placeholder policy, support, and operational assumptions throughout the stack.
+- hosting, networking and infrastructure
+- secrets and key management
+- production database operations and backups
+- payment provider integration, webhooks, reconciliation and refunds
+- identity/account recovery and verified authentication
+- email delivery and domain ownership
+- logging, monitoring, alerting and incident response
+- security review and penetration testing
+- privacy, data retention, age-related requirements and consent
+- legal terms and prediction disclaimers
+- customer support, moderation and abuse handling
+- accessibility and cross-browser/device validation
+
+## Portfolio Recommendation
+
+Keep this repository as the safe demonstration build. If PredictMyGrade is ever developed into a real service, create a separate production workstream/repository with its own threat model, infrastructure, integrations, policies and launch criteria instead of enabling live services here.
