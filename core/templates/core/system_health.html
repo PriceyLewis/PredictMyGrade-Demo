@@ -49,7 +49,7 @@
       <div class="grid grid-3" style="gap:1rem;">
         {% for label, value in counts.items %}
           <div style="background:rgba(124,58,237,0.1);padding:1rem;border-radius:0.75rem;">
-            <p class="muted small" style="text-transform:capitalize;margin-bottom:0.35rem;">{{ label|replace:"_, " }}</p>
+            <p class="muted small" style="text-transform:capitalize;margin-bottom:0.35rem;">{{ label }}</p>
             <p style="font-size:1.5rem;font-weight:600;">{{ value }}</p>
           </div>
         {% endfor %}

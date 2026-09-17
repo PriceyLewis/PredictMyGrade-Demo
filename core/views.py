@@ -31,8 +31,8 @@ from django.db.models import Avg, Count, Q, F
 from django.db.models.functions import TruncDate
 from django.core.cache import cache
 from django.core.mail import EmailMessage, send_mail
-from django.core.exceptions import DisallowedHost
-from django.db import IntegrityError
+from django.core.exceptions import DisallowedHost, ValidationError
+from django.db import IntegrityError, transaction
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, NoReverseMatch
@@ -3190,8 +3190,11 @@ def add_past_paper(request):
     status = request.POST.get('status') or 'queued'
     try:
         score = float(score_raw) if score_raw not in (None, '') else None
+        if score is not None and (not math.isfinite(score) or not 0 <= score <= 100):
+            raise ValueError
     except (TypeError, ValueError):
-        score = None
+        messages.error(request, 'Score must be a number between 0 and 100.')
+        return redirect('core:gcse')
     PastPaperRecord.objects.create(
         user=request.user,
         name=name[:160],
@@ -3212,9 +3215,13 @@ def update_past_paper(request, pk: int):
         record.status = status
     if score_raw is not None:
         try:
-            record.score_percent = float(score_raw)
+            score = None if score_raw == '' else float(score_raw)
+            if score is not None and (not math.isfinite(score) or not 0 <= score <= 100):
+                raise ValueError
+            record.score_percent = score
         except (TypeError, ValueError):
-            pass
+            messages.error(request, 'Score must be a number between 0 and 100.')
+            return redirect('core:gcse')
     record.save()
     messages.success(request, 'Past paper updated.')
     return redirect('core:gcse')
@@ -4943,15 +4950,16 @@ def download_personal_data(request):
 @login_required
 @require_POST
 def toggle_theme(request):
-    current = request.session.get("theme", "dark")
+    profile = get_profile(request.user)
+    current = request.session.get("theme") or profile.theme or "dark"
     new_theme = "light" if current == "dark" else "dark"
     request.session["theme"] = new_theme
     request.session.modified = True
-    profile = get_profile(request.user)
+    request.session["theme_override"] = new_theme
     if profile.theme != new_theme:
         profile.theme = new_theme
         profile.save(update_fields=["theme"])
-    return redirect(request.META.get("HTTP_REFERER", reverse("core:settings")))
+    return redirect("core:settings")
 
 
 @login_required
@@ -4963,6 +4971,8 @@ def update_settings(request):
     if action == "theme":
         desired = (request.POST.get("theme") or "").strip().lower()
         if desired not in {"light", "dark"}:
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"ok": False, "error": "Choose a valid theme option."}, status=400)
             messages.error(request, "Choose a valid theme option.")
         else:
             request.session["theme"] = desired
@@ -4970,12 +4980,18 @@ def update_settings(request):
             if profile.theme != desired:
                 profile.theme = desired
                 profile.save(update_fields=["theme"])
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"ok": True, "theme": desired})
+            request.session["theme_override"] = desired
             messages.success(request, f"Theme set to {desired.title()} mode.")
         return redirect("core:settings")
 
     if action == "persona":
-        persona_id = normalise_persona(request.POST.get("persona"))
         personas = {item["id"]: item["label"] for item in available_personas()}
+        persona_id = request.POST.get("persona")
+        if persona_id not in personas:
+            messages.error(request, "Choose a valid assistant persona.")
+            return redirect("core:settings")
         label = personas.get(persona_id, persona_id.title())
         profile.set_persona(persona_id)
         messages.success(request, f"AI assistant persona updated to {label}.")
@@ -5126,7 +5142,7 @@ def export_data(request):
     writer = csv.writer(buffer)
     writer.writerow(["Name", "Level", "Credits", "Grade %"])
     for module in modules:
-        writer.writerow([module.name, module.level, module.credits, module.grade_percent or ""])
+        writer.writerow([module.name, module.level, module.credits, module.grade_percent if module.grade_percent is not None else ""])
     response = HttpResponse(buffer.getvalue(), content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="predictmygrade_export.csv"'
     DataExportLog.objects.create(
@@ -5183,9 +5199,18 @@ def module_add(request):
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
     name = (request.POST.get("name") or "").strip()
     level = request.POST.get("level") or "UNI"
+    valid_levels = {choice[0] for choice in Module.LEVEL_CHOICES}
+    if level not in valid_levels:
+        if not is_ajax:
+            messages.error(request, "Choose a valid study level.")
+            return redirect("core:modules_list")
+        return JsonResponse({"ok": False, "error": "Choose a valid study level."}, status=400)
     credits_raw = request.POST.get("credits")
     try:
-        credits = int(float(credits_raw or 0))
+        numeric_credits = float(credits_raw or 0)
+        if not math.isfinite(numeric_credits) or not numeric_credits.is_integer() or not 0 <= numeric_credits <= 100:
+            raise ValueError
+        credits = int(numeric_credits)
     except (TypeError, ValueError):
         if not is_ajax:
             messages.error(request, "Credits must be a whole number between 0 and 100.")
@@ -5194,12 +5219,19 @@ def module_add(request):
             {"ok": False, "error": "Credits must be a whole number between 0 and 100."},
             status=400,
         )
-    credits = max(0, min(credits, 100))
+    if not name or len(name) > 128:
+        error = "Enter a module name between 1 and 128 characters."
+        if not is_ajax:
+            messages.error(request, error)
+            return redirect("core:modules_list")
+        return JsonResponse({"ok": False, "error": error}, status=400)
     grade_percent_raw = request.POST.get("grade_percent")
     grade_percent = None
     if grade_percent_raw not in (None, "", "null"):
         try:
             grade_percent = float(grade_percent_raw)
+            if not math.isfinite(grade_percent) or not 0 <= grade_percent <= 100:
+                raise ValueError
         except (TypeError, ValueError):
             if not is_ajax:
                 messages.error(request, "Grade must be a number between 0 and 100.")
@@ -5208,15 +5240,15 @@ def module_add(request):
                 {"ok": False, "error": "Grade must be a number between 0 and 100."},
                 status=400,
             )
-        grade_percent = max(0.0, min(grade_percent, 100.0))
     try:
-        module = Module.objects.create(
-            user=request.user,
-            name=name[:128] or "Module",
-            level=level,
-            credits=credits,
-            grade_percent=grade_percent,
-        )
+        with transaction.atomic():
+            module = Module.objects.create(
+                user=request.user,
+                name=name,
+                level=level,
+                credits=credits,
+                grade_percent=grade_percent,
+            )
     except IntegrityError:
         if not is_ajax:
             messages.error(request, "You already have a module with this name at this level.")
@@ -5250,32 +5282,43 @@ def module_add(request):
 @require_POST
 def module_update(request, pk: int):
     module = get_object_or_404(Module, pk=pk, user=request.user)
+    field = request.POST.get("field")
+    if field:
+        if field not in {"name", "level", "credits", "grade_percent"}:
+            return JsonResponse({"ok": False, "error": "Unsupported module field."}, status=400)
+        request.POST = request.POST.copy()
+        request.POST[field] = request.POST.get("value", "")
     changed = False
     if "name" in request.POST:
         new_name = request.POST.get("name", "").strip()
-        if new_name:
-            module.name = new_name[:128]
-            changed = True
+        if not new_name or len(new_name) > 128:
+            return JsonResponse({"ok": False, "error": "Enter a module name between 1 and 128 characters."}, status=400)
+        module.name = new_name
+        changed = True
     if "credits" in request.POST:
         try:
-            c = int(float(request.POST.get("credits")))
-            if c < 0:
-                c = 0
-            module.credits = c
+            c = float(request.POST.get("credits"))
+            if not math.isfinite(c) or not c.is_integer() or not 0 <= c <= 100:
+                raise ValueError
+            module.credits = int(c)
             changed = True
         except (TypeError, ValueError):
             return JsonResponse(
-                {"ok": False, "error": "credits must be an integer >= 0"}, status=400
+                {"ok": False, "error": "Credits must be a whole number between 0 and 100."}, status=400
             )
+    if "level" in request.POST:
+        level = request.POST.get("level")
+        valid_levels = {choice[0] for choice in Module.LEVEL_CHOICES}
+        if level not in valid_levels:
+            return JsonResponse({"ok": False, "error": "Choose a valid study level."}, status=400)
+        module.level = level
+        changed = True
     if "grade_percent" in request.POST:
         raw = request.POST.get("grade_percent")
         try:
             g = None if raw in (None, "", "null") else float(raw)
-            if g is not None:
-                if g < 0.0:
-                    g = 0.0
-                if g > 100.0:
-                    g = 100.0
+            if g is not None and (not math.isfinite(g) or not 0 <= g <= 100):
+                raise ValueError
             module.grade_percent = g
             changed = True
         except (TypeError, ValueError):
@@ -5283,15 +5326,63 @@ def module_update(request, pk: int):
                 {"ok": False, "error": "grade_percent must be a number 0–100"}, status=400
             )
     if changed:
-        module.save()
+        try:
+            with transaction.atomic():
+                module.save()
+        except IntegrityError:
+            return JsonResponse({"ok": False, "error": "You already have a module with this name at this level."}, status=400)
     return JsonResponse(
         {
             "ok": True,
             "name": module.name,
+            "level": module.level,
             "credits": module.credits,
             "grade_percent": module.grade_percent,
         }
     )
+
+
+@login_required
+def snapshot_history(request):
+    snapshots = list(PredictionSnapshot.objects.filter(user=request.user).order_by("created_at"))
+    return render(
+        request,
+        "core/snapshot_history.html",
+        {
+            "snapshots": list(reversed(snapshots)),
+            "timeline_labels": json.dumps([timezone.localtime(item.created_at).strftime("%d %b") for item in snapshots]),
+            "timeline_values": json.dumps([round(item.average_percent or 0, 2) for item in snapshots]),
+        },
+    )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def what_if_basic(request):
+    outcomes = []
+    error = None
+    if request.method == "POST":
+        weighted_total = 0.0
+        credit_total = 0
+        for mark_raw, credit_raw in zip(request.POST.getlist("sim_mark"), request.POST.getlist("sim_credits")):
+            if not mark_raw and not credit_raw:
+                continue
+            try:
+                mark = float(mark_raw)
+                credit = int(credit_raw)
+                if not 0 <= mark <= 100 or not 1 <= credit <= 100:
+                    raise ValueError
+            except (TypeError, ValueError):
+                error = "Enter marks between 0 and 100 and credits between 1 and 100."
+                outcomes = []
+                break
+            weighted_total += mark * credit
+            credit_total += credit
+            average = weighted_total / credit_total
+            outcomes.append({"average": round(average, 1), "classification": classify_percent(average)})
+        if not error and not outcomes:
+            error = "Add at least one simulated module."
+    return render(request, "core/what_if_basic.html", {"outcomes": outcomes, "error": error})
 
 
 @login_required
@@ -5406,8 +5497,8 @@ def import_user_data(request):
             Module.objects.update_or_create(
                 user=request.user,
                 name=title[:128],
+                level=category[:12] or "UNI",
                 defaults={
-                    "level": category[:12] or "UNI",
                     "credits": credits,
                     "grade_percent": grade,
                     "completion_percent": max(0.0, min(100.0, completion)),
@@ -5459,6 +5550,7 @@ def import_user_data(request):
     return JsonResponse({"ok": True, "created": created})
 
 
+@login_required
 def export_study_plan_calendar(request):
     profile = get_profile(request.user)
     if not resolve_premium_status(request.user, profile=profile)["has_access"]:
@@ -5552,7 +5644,7 @@ def export_modules_csv(request):
     writer = csv.writer(buffer)
     writer.writerow(["Name", "Level", "Credits", "Grade Percent"])
     for module in modules:
-        writer.writerow([module.name, module.level, module.credits, module.grade_percent or ""])
+        writer.writerow([module.name, module.level, module.credits, module.grade_percent if module.grade_percent is not None else ""])
     response = HttpResponse(buffer.getvalue(), content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="modules.csv"'
     return response
@@ -5561,7 +5653,7 @@ def export_modules_csv(request):
 @login_required
 def backup_json(request):
     modules = list(
-        Module.objects.filter(user=request.user).values("name", "level", "credits", "grade_percent")
+        Module.objects.filter(user=request.user).values("name", "level", "credits", "grade_percent", "completion_percent")
     )
     data = {"modules": modules}
     response = HttpResponse(json.dumps(data, indent=2), content_type="application/json")
@@ -5650,7 +5742,7 @@ def restore_backup(request):
     if uploaded:
         try:
             payload = json.load(uploaded)
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, UnicodeDecodeError):
             messages.error(request, "The uploaded file is not valid JSON.")
             return redirect("core:dashboard")
     else:
@@ -5664,18 +5756,36 @@ def restore_backup(request):
     if payload is None:
         messages.error(request, "Upload a valid JSON backup to restore.")
         return redirect("core:dashboard")
-    modules = payload.get("modules", [])
-    if isinstance(modules, list):
-        Module.objects.filter(user=request.user).delete()
-        for module in modules:
-            Module.objects.create(
-                user=request.user,
-                name=(module.get("name") or "Module")[:128],
-                level=module.get("level", "UNI"),
-                credits=int(float(module.get("credits") or 0)),
-                grade_percent=module.get("grade_percent"),
-            )
-        messages.success(request, "Backup restored.")
+    try:
+        if not isinstance(payload, dict) or not isinstance(payload.get("modules"), list):
+            raise ValueError
+        staged = []
+        keys = set()
+        for row in payload["modules"]:
+            if not isinstance(row, dict):
+                raise ValueError
+            credits = float(row.get("credits", 0))
+            grade = row.get("grade_percent")
+            grade = None if grade in (None, "") else float(grade)
+            completion = float(row.get("completion_percent", 0))
+            if not math.isfinite(credits) or not credits.is_integer():
+                raise ValueError
+            if (grade is not None and not math.isfinite(grade)) or not math.isfinite(completion):
+                raise ValueError
+            module = Module(user=request.user, name=row.get("name"), level=row.get("level", "UNI"), credits=int(credits), grade_percent=grade, completion_percent=completion)
+            module.full_clean(validate_unique=False, validate_constraints=False)
+            key = (module.name, module.level)
+            if key in keys:
+                raise ValueError
+            keys.add(key)
+            staged.append(module)
+        with transaction.atomic():
+            Module.objects.filter(user=request.user).delete()
+            Module.objects.bulk_create(staged)
+    except (ValueError, TypeError, ValidationError, IntegrityError):
+        messages.error(request, "Invalid backup. No modules were changed.")
+        return redirect("core:dashboard")
+    messages.success(request, "Backup restored.")
     return redirect("core:dashboard")
 
 

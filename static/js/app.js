@@ -43,15 +43,35 @@
   }
 
   const initial =
-    localStorage.getItem(key) ||
     (root.classList.contains("theme-light") || body?.classList.contains("theme-light")
       ? "light"
       : "dark");
   applyTheme(initial, { persist: false });
 
-  const toggleTheme = () => {
+  const toggleTheme = async () => {
+    const previousTheme = root.classList.contains("theme-light") ? "light" : "dark";
     const nextTheme = root.classList.contains("theme-light") ? "dark" : "light";
     applyTheme(nextTheme);
+    const select = document.getElementById('themeSelect');
+    if (select) select.value = nextTheme;
+    const url = root.dataset.settingsUrl;
+    if (!url) return;
+    toggles.forEach(btn => { btn.disabled = true; });
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content },
+        body: new URLSearchParams({action: 'theme', theme: nextTheme}),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error('Theme was not saved. Please try again.');
+    } catch (error) {
+      applyTheme(previousTheme);
+      if (select) select.value = previousTheme;
+      window.showToast(error.message, 'error');
+    } finally {
+      toggles.forEach(btn => { btn.disabled = false; });
+    }
   };
 
   toggles.forEach((btn) => {
@@ -104,7 +124,7 @@
         body.set("engagement_score", "0.7");
 
         const headers = {};
-        const csrfToken = getCookie("csrftoken");
+        const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]')?.value || getCookie("csrftoken");
         if (csrfToken) {
           headers["X-CSRFToken"] = csrfToken;
         }
@@ -183,7 +203,19 @@ function showToast(msg, type = "info") {
     error: "linear-gradient(to right, #ef4444, #dc2626)",
   };
   if (typeof Toastify !== "function") {
-    console.warn("PredictMyGrade: toast notification requested but Toastify is unavailable.");
+    const notification = document.createElement("div");
+    notification.setAttribute("role", type === "error" ? "alert" : "status");
+    notification.style.cssText = "position:fixed;bottom:1rem;right:1rem;z-index:10000;max-width:min(28rem,calc(100vw - 2rem));padding:1rem;border-radius:8px;background:#20243b;color:white;box-shadow:0 8px 24px #0005";
+    const message = document.createElement("span");
+    message.textContent = msg;
+    const close = document.createElement("button");
+    close.type = "button";
+    close.textContent = "Dismiss";
+    close.style.cssText = "margin-left:1rem;color:inherit;background:transparent;border:1px solid currentColor;border-radius:4px;padding:.25rem .5rem";
+    close.addEventListener("click", () => notification.remove());
+    notification.append(message, close);
+    document.body.appendChild(notification);
+    if (type !== "error") window.setTimeout(() => notification.remove(), 5000);
     return;
   }
   Toastify({
@@ -202,96 +234,3 @@ function showToast(msg, type = "info") {
   }).showToast();
 }
 window.showToast = showToast;
-
-// Cookie consent manager
-(function () {
-  const consentKey = "pmg.cookieConsent";
-  const cookieName = "pmg_cookie_consent";
-  const banner = document.querySelector("[data-cookie-banner]");
-  const modal = document.querySelector("[data-cookie-modal]");
-  const acceptBtn = document.querySelector("[data-cookie-accept]");
-  const declineBtn = document.querySelector("[data-cookie-decline]");
-  const manageBtn = document.querySelector("[data-cookie-manage]");
-  const analyticsToggle = document.querySelector("[data-cookie-analytics]");
-  const saveBtn = document.querySelector("[data-cookie-save]");
-  const closeBtns = document.querySelectorAll("[data-cookie-close]");
-  const prefOpeners = document.querySelectorAll("[data-cookie-open]");
-  if (!banner || !modal) return;
-
-  const setConsent = (value, silent = false) => {
-    localStorage.setItem(consentKey, value);
-    document.cookie = `${cookieName}=${value};path=/;max-age=31536000;SameSite=Lax`;
-    document.documentElement.dataset.analyticsConsent = value;
-    if (!silent) {
-      window.dispatchEvent(
-        new CustomEvent("pmg:cookie-consent", { detail: { value } })
-      );
-    }
-    window.PMGConsent = window.PMGConsent || {};
-    window.PMGConsent.value = value;
-  };
-
-  const currentConsent = () => {
-    const stored = localStorage.getItem(consentKey);
-    if (stored) return stored;
-    const match = document.cookie.match(new RegExp(`(?:^| )${cookieName}=([^;]+)`));
-    return match ? match[1] : "";
-  };
-
-  const updateUI = () => {
-    const value = currentConsent();
-    if (value) {
-      banner.hidden = true;
-      modal.hidden = true;
-      modal.setAttribute("aria-hidden", "true");
-      if (analyticsToggle) {
-        analyticsToggle.checked = value === "analytics";
-      }
-    } else {
-      banner.hidden = false;
-    }
-  };
-
-  const openModal = () => {
-    modal.hidden = false;
-    modal.setAttribute("aria-hidden", "false");
-    if (analyticsToggle) {
-      analyticsToggle.checked = currentConsent() === "analytics";
-    }
-  };
-
-  const closeModal = () => {
-    modal.hidden = true;
-    modal.setAttribute("aria-hidden", "true");
-  };
-
-  acceptBtn?.addEventListener("click", () => {
-    setConsent("analytics");
-    banner.hidden = true;
-    closeModal();
-  });
-
-  declineBtn?.addEventListener("click", () => {
-    setConsent("essential");
-    banner.hidden = true;
-    closeModal();
-  });
-
-  manageBtn?.addEventListener("click", openModal);
-  prefOpeners.forEach((btn) => btn.addEventListener("click", openModal));
-  closeBtns.forEach((btn) => btn.addEventListener("click", closeModal));
-
-  saveBtn?.addEventListener("click", () => {
-    setConsent(analyticsToggle.checked ? "analytics" : "essential");
-    closeModal();
-  });
-
-  window.PMGConsent = {
-    value: currentConsent() || null,
-    acceptAnalytics: () => setConsent("analytics"),
-    declineAnalytics: () => setConsent("essential"),
-  };
-
-  updateUI();
-})();
-
