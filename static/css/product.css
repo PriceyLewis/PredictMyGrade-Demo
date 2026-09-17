@@ -112,7 +112,7 @@ label,.label { color:var(--color-text-soft); font-weight:650; }
 .page > *, .modules-page > *, .dashboard-shell > *, .level-dashboard > *,
 .grid > *, .grid-2 > *, .grid-3 > * { min-width:0; }
 .table-responsive,.responsive-table { max-width:100%; min-width:0; }
-.stacked > *, .table-scroll { min-width:0; max-width:100%; }
+.stacked > *, .section-grid > *, .table-scroll { min-width:0; max-width:100%; }
 .site-nav__inner { grid-template-columns:auto minmax(0,1fr) auto; }
 .site-nav__links { flex-wrap:wrap; min-width:0; }
 .theme-light .site-nav__brand { color:var(--color-text); }
@@ -160,6 +160,8 @@ tbody tr:hover { background:rgba(124,58,237,.045); }
   .site-nav__links li{width:100%}.site-nav__link{padding:.75rem .9rem !important}
   .grid,.grid-2,.grid-3,.grid-4,.metrics-grid{grid-template-columns:minmax(0,1fr) !important}
   .dashboard-shell,.dashboard-main,.college-dashboard .level-hero{grid-template-columns:minmax(0,1fr) !important}
+  .section-grid{grid-template-columns:minmax(0,1fr) !important}
+  .flex-between{flex-wrap:wrap;gap:.6rem}
   .modules-page{grid-template-columns:minmax(0,1fr)}
   .college-dashboard input,.college-dashboard select{max-width:100%;min-width:0}
   .college-dashboard .table{display:block;max-width:100%;overflow-x:auto}
