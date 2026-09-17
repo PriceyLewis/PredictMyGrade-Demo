@@ -49,3 +49,11 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+      - name: Upload desktop and mobile review screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-review-${{ github.sha }}
+          path: test-results/**/*.png
+          if-no-files-found: warn
+          retention-days: 7

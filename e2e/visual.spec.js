@@ -1,0 +1,67 @@
+const { test, expect } = require('@playwright/test');
+
+// Review captures, not pixel baselines: a passing test does not certify visual polish.
+// CI uses only the disposable QA accounts created by global-setup.js.
+const screens = [
+  ['login', '/accounts/login/', false],
+  ['dashboard', '/dashboard/?skip_welcome=1', true],
+  ['modules', '/modules/', true],
+  ['college', '/college/', true],
+  ['what-if', '/what-if/', true],
+  ['settings', '/settings/', true],
+  ['history', '/snapshot/history/', true],
+];
+
+for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+  for (const theme of ['dark', 'light']) {
+    test.describe(`${viewport.width}px ${theme}`, () => {
+      test.use({ viewport, colorScheme: theme, reducedMotion: 'reduce' });
+      for (const [name, url, authenticated] of screens) {
+        test(`${name} visual review`, async ({ browser, baseURL }, testInfo) => {
+          const context = await browser.newContext({
+            baseURL, viewport, colorScheme: theme, reducedMotion: 'reduce',
+            storageState: authenticated ? './e2e/.auth/user.json' : undefined,
+          });
+          try {
+            await context.addInitScript(selectedTheme => {
+              localStorage.setItem('predictmygrade-theme', selectedTheme);
+            }, theme);
+            const page = await context.newPage();
+            const errors = [];
+            page.on('pageerror', error => errors.push(error.message));
+            const response = await page.goto(url);
+            expect(response.status()).toBe(200);
+            expect(new URL(page.url()).pathname).toBe(new URL(url, baseURL).pathname);
+            await expect(page.locator('main')).toBeVisible();
+            const consent = page.getByRole('button', { name: 'Only essential', exact: true });
+            if (await consent.isVisible()) await consent.click();
+            await page.evaluate(() => document.fonts.ready);
+            // Let on-scroll content render before the full-page capture.
+            await page.evaluate(async () => {
+              for (let y = 0; y < document.body.scrollHeight; y += window.innerHeight) {
+                window.scrollTo(0, y);
+                await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+              }
+              window.scrollTo(0, 0);
+            });
+            await page.screenshot({ path: testInfo.outputPath(`${name}-${viewport.width}-${theme}.png`), fullPage: true, animations: 'disabled' });
+            const layout = await page.evaluate(() => ({
+              viewport: window.innerWidth,
+              documentWidth: document.documentElement.scrollWidth,
+              overflowing: [...document.querySelectorAll('main *')].filter(element => {
+                const rect = element.getBoundingClientRect();
+                return rect.width > 0 && (rect.right > window.innerWidth + 1 || rect.left < -1)
+                  && !element.closest('.table-responsive');
+              }).slice(0, 20).map(element => ({ tag: element.tagName, class: element.className })),
+            }));
+            await testInfo.attach('layout', { body: JSON.stringify({ ...layout, errors }, null, 2), contentType: 'application/json' });
+            expect.soft(layout.documentWidth, 'Page should not scroll horizontally').toBeLessThanOrEqual(viewport.width + 1);
+            expect.soft(errors, 'Uncaught browser errors').toEqual([]);
+          } finally {
+            await context.close();
+          }
+        });
+      }
+    });
+  }
+}
