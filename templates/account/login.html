@@ -20,11 +20,15 @@
       <h2>Open the demo</h2>
       <p class="auth-panel__lead">No registration, payment card, or third-party account is required.</p>
       <div class="provider-list">
-        <form action="{% url 'core:mock_login' %}" method="post">
-          {% csrf_token %}
-          {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
-          <button type="submit" class="provider-button primary"><span class="provider-icon">D</span><span>Continue as Demo User</span></button>
-        </form>
+        {% if BILLING_MOCK_MODE %}
+          <form action="{% url 'core:mock_login' %}" method="post">
+            {% csrf_token %}
+            {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+            <button type="submit" class="provider-button primary"><span class="provider-icon">D</span><span>Continue as Demo User</span></button>
+          </form>
+        {% else %}
+          <p class="demo-callout">Demo sign-in is disabled in this environment.</p>
+        {% endif %}
       </div>
       <div class="demo-callout" role="note">
         <strong>Demo-only environment.</strong> External Google, GitHub and Microsoft sign-in is intentionally hidden. Billing is simulated and no real card details are collected.
