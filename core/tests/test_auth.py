@@ -16,12 +16,17 @@ class DashboardAccessTests(TestCase):
 
 
 class LoginPageTests(TestCase):
-    def test_login_page_shows_github_provider_without_seeded_social_app(self):
+    @override_settings(BILLING_MOCK_MODE=True)
+    def test_login_page_is_explicitly_demo_only(self):
         response = self.client.get(reverse("account_login"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Continue with GitHub")
-        self.assertContains(response, reverse("github_login"))
+        self.assertContains(response, "Portfolio demo")
+        self.assertContains(response, "Continue as Demo User")
+        self.assertContains(response, "no real card details are collected")
+        self.assertNotContains(response, "Continue with Google")
+        self.assertNotContains(response, "Continue with GitHub")
+        self.assertNotContains(response, "Continue with Microsoft")
 
     @override_settings(BILLING_MOCK_MODE=True)
     def test_login_page_shows_demo_login_in_mock_mode(self):
@@ -37,6 +42,7 @@ class LoginPageTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "Continue as Demo User")
+        self.assertContains(response, "Demo sign-in is disabled")
 
 
 class MockLoginTests(TestCase):
