@@ -3190,8 +3190,11 @@ def add_past_paper(request):
     status = request.POST.get('status') or 'queued'
     try:
         score = float(score_raw) if score_raw not in (None, '') else None
+        if score is not None and (not math.isfinite(score) or not 0 <= score <= 100):
+            raise ValueError
     except (TypeError, ValueError):
-        score = None
+        messages.error(request, 'Score must be a number between 0 and 100.')
+        return redirect('core:gcse')
     PastPaperRecord.objects.create(
         user=request.user,
         name=name[:160],
@@ -3212,9 +3215,13 @@ def update_past_paper(request, pk: int):
         record.status = status
     if score_raw is not None:
         try:
-            record.score_percent = float(score_raw)
+            score = None if score_raw == '' else float(score_raw)
+            if score is not None and (not math.isfinite(score) or not 0 <= score <= 100):
+                raise ValueError
+            record.score_percent = score
         except (TypeError, ValueError):
-            pass
+            messages.error(request, 'Score must be a number between 0 and 100.')
+            return redirect('core:gcse')
     record.save()
     messages.success(request, 'Past paper updated.')
     return redirect('core:gcse')
@@ -4943,15 +4950,16 @@ def download_personal_data(request):
 @login_required
 @require_POST
 def toggle_theme(request):
-    current = request.session.get("theme", "dark")
+    profile = get_profile(request.user)
+    current = request.session.get("theme") or profile.theme or "dark"
     new_theme = "light" if current == "dark" else "dark"
     request.session["theme"] = new_theme
     request.session.modified = True
-    profile = get_profile(request.user)
+    request.session["theme_override"] = new_theme
     if profile.theme != new_theme:
         profile.theme = new_theme
         profile.save(update_fields=["theme"])
-    return redirect(request.META.get("HTTP_REFERER", reverse("core:settings")))
+    return redirect("core:settings")
 
 
 @login_required
@@ -4963,6 +4971,8 @@ def update_settings(request):
     if action == "theme":
         desired = (request.POST.get("theme") or "").strip().lower()
         if desired not in {"light", "dark"}:
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"ok": False, "error": "Choose a valid theme option."}, status=400)
             messages.error(request, "Choose a valid theme option.")
         else:
             request.session["theme"] = desired
@@ -4970,12 +4980,18 @@ def update_settings(request):
             if profile.theme != desired:
                 profile.theme = desired
                 profile.save(update_fields=["theme"])
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"ok": True, "theme": desired})
+            request.session["theme_override"] = desired
             messages.success(request, f"Theme set to {desired.title()} mode.")
         return redirect("core:settings")
 
     if action == "persona":
-        persona_id = normalise_persona(request.POST.get("persona"))
         personas = {item["id"]: item["label"] for item in available_personas()}
+        persona_id = request.POST.get("persona")
+        if persona_id not in personas:
+            messages.error(request, "Choose a valid assistant persona.")
+            return redirect("core:settings")
         label = personas.get(persona_id, persona_id.title())
         profile.set_persona(persona_id)
         messages.success(request, f"AI assistant persona updated to {label}.")
@@ -5126,7 +5142,7 @@ def export_data(request):
     writer = csv.writer(buffer)
     writer.writerow(["Name", "Level", "Credits", "Grade %"])
     for module in modules:
-        writer.writerow([module.name, module.level, module.credits, module.grade_percent or ""])
+        writer.writerow([module.name, module.level, module.credits, module.grade_percent if module.grade_percent is not None else ""])
     response = HttpResponse(buffer.getvalue(), content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="predictmygrade_export.csv"'
     DataExportLog.objects.create(

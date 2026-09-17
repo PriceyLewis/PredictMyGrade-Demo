@@ -12,6 +12,7 @@ module.exports = defineConfig({
     timeout: 10_000,
   },
   fullyParallel: false,
+  workers: 1, // The mock accounts are shared: keep persistence checks deterministic.
   reporter: 'list',
   use: {
     baseURL,
@@ -29,6 +30,7 @@ module.exports = defineConfig({
       DJANGO_DEBUG: 'true',
       DJANGO_ALLOWED_HOSTS: '127.0.0.1,localhost,testserver',
       BILLING_MOCK_MODE: '1',
+      DJANGO_EMAIL_BACKEND: 'django.core.mail.backends.locmem.EmailBackend',
     },
     url: baseURL,
     reuseExistingServer: true,

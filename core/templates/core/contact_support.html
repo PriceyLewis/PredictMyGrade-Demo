@@ -10,11 +10,6 @@
 {% block content %}
 <div class="container" style="max-width:700px;">
     <h2 class="text-primary mb-4">&#128233; Contact PredictMyGrade Support</h2>
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
     <form method="post" novalidate>
       {% csrf_token %}
       <div class="mb-3">

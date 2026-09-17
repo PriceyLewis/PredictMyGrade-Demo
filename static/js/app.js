@@ -43,15 +43,35 @@
   }
 
   const initial =
-    localStorage.getItem(key) ||
     (root.classList.contains("theme-light") || body?.classList.contains("theme-light")
       ? "light"
       : "dark");
   applyTheme(initial, { persist: false });
 
-  const toggleTheme = () => {
+  const toggleTheme = async () => {
+    const previousTheme = root.classList.contains("theme-light") ? "light" : "dark";
     const nextTheme = root.classList.contains("theme-light") ? "dark" : "light";
     applyTheme(nextTheme);
+    const select = document.getElementById('themeSelect');
+    if (select) select.value = nextTheme;
+    const url = root.dataset.settingsUrl;
+    if (!url) return;
+    toggles.forEach(btn => { btn.disabled = true; });
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content },
+        body: new URLSearchParams({action: 'theme', theme: nextTheme}),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error('Theme was not saved. Please try again.');
+    } catch (error) {
+      applyTheme(previousTheme);
+      if (select) select.value = previousTheme;
+      window.showToast(error.message, 'error');
+    } finally {
+      toggles.forEach(btn => { btn.disabled = false; });
+    }
   };
 
   toggles.forEach((btn) => {

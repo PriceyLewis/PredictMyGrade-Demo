@@ -46,7 +46,7 @@
 
 
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<link rel="stylesheet" href="{% static 'vendor/toastify/toastify.min.css' %}">
 
 
 
@@ -54,7 +54,7 @@
 
 
 
-<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script src="{% static 'vendor/toastify/toastify.min.js' %}"></script>
 
 
 
@@ -62,7 +62,7 @@
 
 
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
 
 
 
@@ -4683,7 +4683,7 @@
 
       if (details.length) {
 
-        lines.push(`DESCRIPTION:${escapeIcsText(details.join("\\n"))}`);
+        lines.push(`DESCRIPTION:${escapeIcsText(details.join("\n"))}`);
 
       }
 
@@ -4701,7 +4701,7 @@
 
     lines.push("END:VCALENDAR");
 
-    return `${lines.join("\\r\\n")}` + "\\r\\n";
+    return lines.join("\r\n") + "\r\n";
 
   }
 
@@ -5004,7 +5004,6 @@
 
 
 {% endblock %}
-
 
 
 
