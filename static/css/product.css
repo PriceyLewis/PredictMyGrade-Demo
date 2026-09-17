@@ -112,6 +112,9 @@ label,.label { color:var(--color-text-soft); font-weight:650; }
 .page > *, .modules-page > *, .dashboard-shell > *, .level-dashboard > *,
 .grid > *, .grid-2 > *, .grid-3 > * { min-width:0; }
 .table-responsive,.responsive-table { max-width:100%; min-width:0; }
+.stacked > *, .table-scroll { min-width:0; max-width:100%; }
+.site-nav__inner { grid-template-columns:auto minmax(0,1fr) auto; }
+.site-nav__links { flex-wrap:wrap; min-width:0; }
 .theme-light .site-nav__brand { color:var(--color-text); }
 .theme-light .hero-bar,.theme-light .nav-bar,.theme-light .cookie-banner,
 .theme-light .cookie-modal__dialog { background:var(--color-surface) !important; color:var(--color-text); }
@@ -128,6 +131,15 @@ tbody tr:hover { background:rgba(124,58,237,.045); }
   box-shadow:0 18px 50px rgba(4,3,12,.2) !important;
 }
 .level-toolbar,.hero-actions { border-radius:var(--pmg-radius) !important; background:rgba(21,16,39,.72) !important; border:1px solid rgba(167,139,250,.12) !important; }
+.theme-light .auth-intro,.theme-light .level-header,.theme-light .level-hero {
+  background:linear-gradient(135deg,#ede9fe,#f8f7ff) !important;
+}
+.theme-light .level-toolbar,.theme-light .hero-actions,
+.theme-light .settings-dashboard .inline-form,.theme-light .settings-dashboard .builder {
+  background:var(--color-surface-alt) !important;
+  color:var(--color-text);
+}
+.theme-light .site-footer { background:var(--color-surface-alt) !important; }
 .eyebrow { color:var(--color-brand-soft) !important; font-size:.72rem !important; font-weight:800; letter-spacing:.14em !important; text-transform:uppercase; }
 .muted,.text-muted,.card-subtitle { color:var(--color-text-muted) !important; }
 .badge-premium,.plan-chip.is-premium { box-shadow:none !important; }
@@ -150,6 +162,8 @@ tbody tr:hover { background:rgba(124,58,237,.045); }
   .dashboard-shell,.dashboard-main,.college-dashboard .level-hero{grid-template-columns:minmax(0,1fr) !important}
   .modules-page{grid-template-columns:minmax(0,1fr)}
   .college-dashboard input,.college-dashboard select{max-width:100%;min-width:0}
+  .college-dashboard .table{display:block;max-width:100%;overflow-x:auto}
+  .strip-switcher__menu{left:0;right:auto;min-width:0;width:min(220px,calc(100vw - 3rem))}
   .level-header,.level-hero,.hero-bar{padding:1.15rem !important;border-radius:var(--pmg-radius) !important}
   .level-actions,.hero-actions,.toolbar{width:100%}.level-actions .btn,.level-actions .level-btn,.hero-actions .btn{width:100%}
   .cookie-banner{bottom:.5rem;width:calc(100% - 1rem);padding:1rem}.cookie-banner__actions{width:100%}.cookie-banner__actions .btn{flex:1}
