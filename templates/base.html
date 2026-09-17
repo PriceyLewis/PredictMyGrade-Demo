@@ -62,6 +62,7 @@
   <link rel="stylesheet" href="{% static 'css/theme.css' %}">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   {% block extra_css %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'css/product.css' %}">
 </head>
 <body
   data-analytics-src="{{ ANALYTICS_SCRIPT_URL }}"
@@ -99,11 +100,11 @@
       </button>
       <ul class="site-nav__links" id="siteNavLinks">
         {% if request.user.is_authenticated %}
-          <li><a class="site-nav__link" href="{% url 'core:dashboard' %}">University</a></li>
-          <li><a class="site-nav__link" href="{% url 'core:college' %}">College</a></li>
-          <li><a class="site-nav__link" href="{% url 'core:gcse' %}">GCSE</a></li>
-          <li><a class="site-nav__link" href="{% url 'core:compare_levels' %}">Compare Levels</a></li>
-          <li><a class="site-nav__link" href="{% url 'core:settings' %}">Settings</a></li>
+          <li><a class="site-nav__link{% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'dashboard_home' %} is-active{% endif %}" href="{% url 'core:dashboard' %}">Dashboard</a></li>
+          <li><a class="site-nav__link{% if request.resolver_match.url_name == 'college' %} is-active{% endif %}" href="{% url 'core:college' %}">College</a></li>
+          <li><a class="site-nav__link{% if request.resolver_match.url_name == 'gcse' %} is-active{% endif %}" href="{% url 'core:gcse' %}">GCSE</a></li>
+          <li><a class="site-nav__link{% if request.resolver_match.url_name == 'compare_levels' %} is-active{% endif %}" href="{% url 'core:compare_levels' %}">Compare</a></li>
+          <li><a class="site-nav__link{% if request.resolver_match.url_name == 'settings' %} is-active{% endif %}" href="{% url 'core:settings' %}">Settings</a></li>
           {% if request.user.is_superuser %}
             <li><a class="site-nav__link" href="{% url 'core:admin_hub' %}">Admin Hub</a></li>
             <li><a class="site-nav__link" href="{% url 'core:admin_analytics' %}">Admin Analytics</a></li>
@@ -152,7 +153,7 @@
           </span>
           <a class="btn secondary" href="{% url 'core:logout' %}">Logout</a>
         {% else %}
-          <a class="btn secondary" href="{% url 'account_login' %}">Log in</a>
+      <a class="btn secondary" href="{% url 'account_login' %}">Log in</a>
           <a class="btn" href="{% url 'account_signup' %}">Create account</a>
         {% endif %}
       </div>
