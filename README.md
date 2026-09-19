@@ -4,7 +4,7 @@
 
 **Django · Python · SQLite · Playwright · product engineering**
 
-![PredictMyGrade portfolio preview](https://priceylewis.github.io/assets/predictmygrade.svg)
+![PredictMyGrade demo login captured by Playwright](docs/screenshots/predictmygrade-login-dark.png)
 
 [View the recruiter case study](https://priceylewis.github.io/projects/predictmygrade.html)
 
