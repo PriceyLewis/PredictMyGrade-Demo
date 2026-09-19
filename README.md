@@ -1,6 +1,26 @@
 # PredictMyGrade Demo
 
+[![CI](https://github.com/PriceyLewis/PredictMyGrade-Demo/actions/workflows/ci.yml/badge.svg)](https://github.com/PriceyLewis/PredictMyGrade-Demo/actions/workflows/ci.yml)
+
+**Django · Python · SQLite · Playwright · product engineering**
+
+![PredictMyGrade portfolio preview](https://priceylewis.github.io/assets/predictmygrade.svg)
+
+[View the recruiter case study](https://priceylewis.github.io/projects/predictmygrade.html)
+
 PredictMyGrade is a portfolio Django product demo for student progress tracking, grade forecasting, study planning, and freemium product journeys. **This repository is intentionally a demo, not a live product or production SaaS.**
+
+## 60-second recruiter walkthrough
+
+1. Start the app and choose **Continue as Demo User**.
+2. Review the populated dashboard, modules and progress summaries.
+3. Open **What If** to demonstrate scenario modelling.
+4. Try a Premium-only surface such as AI Reports.
+5. Use the mock upgrade flow and confirm Premium access.
+6. Open Manage Plan and return to Free.
+7. Re-open the Premium feature to show that state-backed gating is restored.
+
+That journey is also covered by Playwright smoke tests in CI.
 
 ## Demo-Only Contract
 
