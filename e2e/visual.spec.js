@@ -10,6 +10,8 @@ const screens = [
   ['what-if', '/what-if/', true],
   ['settings', '/settings/', true],
   ['history', '/snapshot/history/', true],
+  ['welcome', '/welcome/', true],
+  ['upgrade', '/upgrade/', true],
 ];
 
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
@@ -29,10 +31,30 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
             const page = await context.newPage();
             const errors = [];
             page.on('pageerror', error => errors.push(error.message));
+            page.on('console', message => {
+              if (message.type() === 'error' && !/favicon|ResizeObserver loop/i.test(message.text())) {
+                errors.push('console: ' + message.text());
+              }
+            });
             const response = await page.goto(url);
             expect(response.status()).toBe(200);
             expect(new URL(page.url()).pathname).toBe(new URL(url, baseURL).pathname);
             await expect(page.locator('main.page')).toBeVisible();
+            if (name === 'welcome') {
+              await expect(page.locator('.feature-card').first()).toContainText('Grade Tracker');
+              const readable = await page.locator('.feature-card').first().evaluate(element => {
+                const card = getComputedStyle(element);
+                const heading = getComputedStyle(element.querySelector('h3'));
+                const body = getComputedStyle(element.querySelector('p'));
+                return {
+                  background: card.backgroundColor,
+                  heading: heading.color,
+                  body: body.color,
+                };
+              });
+              expect(readable.heading).not.toBe(readable.background);
+              expect(readable.body).not.toBe(readable.background);
+            }
             const consent = page.getByRole('button', { name: 'Only essential', exact: true });
             if (await consent.isVisible()) await consent.click();
             await page.evaluate(() => document.fonts.ready);
