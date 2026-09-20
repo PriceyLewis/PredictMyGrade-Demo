@@ -6,7 +6,7 @@
 
 ![PredictMyGrade demo login captured by Playwright](docs/screenshots/predictmygrade-login-dark.png)
 
-[View the recruiter case study](https://priceylewis.github.io/projects/predictmygrade.html)
+[Launch the live demo](https://predictmygrade-demo.onrender.com/) · [View the recruiter case study](https://priceylewis.github.io/projects/predictmygrade.html)
 
 PredictMyGrade is a portfolio Django product demo for student progress tracking, grade forecasting, study planning, and freemium product journeys. **This repository is intentionally a demo, not a live product or production SaaS.**
 
@@ -20,7 +20,7 @@ PredictMyGrade is a portfolio Django product demo for student progress tracking,
 6. Open Manage Plan and return to Free.
 7. Re-open the Premium feature to show that state-backed gating is restored.
 
-That journey is also covered by Playwright smoke tests in CI.
+That journey is covered by Playwright smoke tests in CI and by a separate live-deployment smoke test against the public Render demo.
 
 ## Demo-Only Contract
 
