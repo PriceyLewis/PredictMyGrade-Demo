@@ -86,6 +86,46 @@ jobs:
             await page.goto(base + '/reports/ai/', { waitUntil: 'domcontentloaded' });
             assert(/\/upgrade\/$/.test(new URL(page.url()).pathname), 'Free user was not gated to upgrade');
 
+            // Verify the deployed pricing page itself at a recruiter-sized mobile viewport.
+            await page.setViewportSize({ width: 390, height: 844 });
+            const planCards = page.locator('.plan-card');
+            assert(await planCards.count() === 2, 'Live upgrade page does not contain both plan cards');
+            await planCards.nth(0).waitFor({ state: 'visible' });
+            await planCards.nth(1).waitFor({ state: 'visible' });
+
+            const comparison = page.locator('.comparison-table');
+            await comparison.waitFor({ state: 'visible' });
+            assert(
+              (await comparison.innerText()).includes('Advanced analytics'),
+              'Live upgrade comparison table is missing content'
+            );
+            assert(await page.locator('#upgrade-alert').isHidden(), 'Inactive live upgrade alert is visible');
+
+            const mobileLayout = await page.evaluate(() => ({
+              viewport: innerWidth,
+              documentWidth: document.documentElement.scrollWidth,
+              premiumHeader: (() => {
+                const header = document.querySelector('.comparison-table th:last-child');
+                if (!header) return null;
+                const style = getComputedStyle(header);
+                return {
+                  whiteSpace: style.whiteSpace,
+                  height: header.getBoundingClientRect().height,
+                  text: header.textContent?.trim() || '',
+                };
+              })(),
+            }));
+            assert(
+              mobileLayout.documentWidth <= mobileLayout.viewport + 2,
+              'Live upgrade page overflows mobile viewport: ' + JSON.stringify(mobileLayout)
+            );
+            assert(
+              mobileLayout.premiumHeader &&
+              mobileLayout.premiumHeader.whiteSpace === 'nowrap' &&
+              mobileLayout.premiumHeader.height < 50,
+              'Live Premium heading wraps incorrectly: ' + JSON.stringify(mobileLayout)
+            );
+
             const monthly = page.locator('.js-upgrade-cta[data-plan="monthly"]');
             await monthly.waitFor();
             await monthly.click();
