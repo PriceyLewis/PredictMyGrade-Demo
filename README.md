@@ -4,6 +4,15 @@
 
 **Django · Python · SQLite · Playwright · product engineering**
 
+
+## Portfolio release status
+
+**v1.0.0 Portfolio Release · Verified 20 September 2026**
+
+This is the recruiter-facing release of the project. Automated tests and the public demo journey have been re-verified before publication.
+
+[Read the v1.0.0 release notes](./RELEASE_NOTES_v1.0.0.md)
+
 ![PredictMyGrade demo login captured by Playwright](docs/screenshots/predictmygrade-login-dark.png)
 
 [Launch the live demo](https://predictmygrade-demo.onrender.com/) · [View the recruiter case study](https://priceylewis.github.io/projects/predictmygrade.html)
