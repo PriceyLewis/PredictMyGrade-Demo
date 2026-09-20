@@ -5,7 +5,6 @@
 {% block body_attrs %} class="theme-{{ request.session.theme|default:'dark' }}"{% endblock %}
 {% block extra_css %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'vendor/aos/aos.css' %}">
   <style>
     .upgrade-page {
       max-width: 1100px;
@@ -207,13 +206,8 @@
 {% endblock %}
 {% block extra_js %}
   {{ block.super }}
-  <script src="{% static 'vendor/aos/aos.js' %}"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      if (window.AOS) {
-        AOS.init({ duration: 800, once: true });
-      }
-
       const checkoutEndpoint = "{% url 'core:create_checkout_session_default' %}";
       const csrfInput = document.querySelector("#upgrade-checkout-form [name='csrfmiddlewaretoken']");
       const csrfToken = csrfInput ? csrfInput.value : null;
@@ -285,9 +279,9 @@
 {% endblock %}
 
 {% block content %}
-<div class="upgrade-page" data-aos="fade-up">
+<div class="upgrade-page">
   {% if has_premium_access and not profile.is_trial_active %}
-    <div class="premium-status-card" data-aos="fade-down">
+    <div class="premium-status-card">
       <div class="premium-status-card__tag">Premium member</div>
       <p class="premium-status-card__message">
         {% with summary=subscription_summary %}
@@ -339,7 +333,7 @@
   {% endif %}
 
     <div class="plan-grid">
-      <div class="plan-card" data-aos="zoom-in-up">
+      <div class="plan-card">
         <p class="plan-pill">Flexible</p>
         <h2>{{ monthly_snapshot.nickname|default:"Monthly Plan" }}</h2>
         <p class="plan-price">
@@ -369,7 +363,7 @@
         {% endif %}
       </div>
 
-      <div class="plan-card plan-card--accent" data-aos="zoom-in-up" data-aos-delay="120">
+      <div class="plan-card plan-card--accent">
         <p class="plan-pill">Best value</p>
         <h2>{{ yearly_snapshot.nickname|default:"Yearly Plan" }}</h2>
         <p class="plan-price">
