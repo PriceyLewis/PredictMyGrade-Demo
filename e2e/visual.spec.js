@@ -55,6 +55,9 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
               expect(readable.heading).not.toBe(readable.background);
               expect(readable.body).not.toBe(readable.background);
             }
+            if (name === 'upgrade') {
+              await expect(page.locator('#upgrade-alert')).toBeHidden();
+            }
             const consent = page.getByRole('button', { name: 'Only essential', exact: true });
             if (await consent.isVisible()) await consent.click();
             await page.evaluate(() => document.fonts.ready);
