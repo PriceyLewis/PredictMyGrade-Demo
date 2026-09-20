@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: predictmygrade-demo
+    runtime: python
+    region: frankfurt
+    plan: free
+    branch: main
+    buildCommand: bash build.sh
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 4
+    healthCheckPath: /accounts/login/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DATABASE_URL
+        value: sqlite:///db.sqlite3
+      - key: DATABASE_SSL_REQUIRE
+        value: "false"
+      - key: DJANGO_EMAIL_BACKEND
+        value: django.core.mail.backends.locmem.EmailBackend
+      - key: ONBOARDING_SAMPLE_DATA_ENABLED
+        value: "true"
