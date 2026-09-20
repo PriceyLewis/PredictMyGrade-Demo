@@ -5,7 +5,7 @@
 {% block body_attrs %} class="theme-{{ request.session.theme|default:'dark' }}"{% endblock %}
 {% block extra_css %}
   {{ block.super }}
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+  <link rel="stylesheet" href="{% static 'vendor/aos/aos.css' %}">
   <style>
     .upgrade-page {
       max-width: 1100px;
@@ -201,7 +201,7 @@
 {% endblock %}
 {% block extra_js %}
   {{ block.super }}
-  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <script src="{% static 'vendor/aos/aos.js' %}"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       if (window.AOS) {
@@ -400,7 +400,7 @@
 
   <div id="upgrade-alert" class="alert mt-4 d-none" role="alert"></div>
 
-  <table class="comparison-table" data-aos="fade-up">
+  <table class="comparison-table">
     <thead>
       <tr>
         <th>Features</th>
