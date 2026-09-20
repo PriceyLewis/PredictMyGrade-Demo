@@ -1,0 +1,117 @@
+name: Live demo smoke test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 8 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: predictmygrade-live-demo
+  cancel-in-progress: true
+
+jobs:
+  live-demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      - name: Wait for Render demo to be ready
+        shell: bash
+        run: |
+          for attempt in {1..36}; do
+            code="$(curl -L -sS -o /tmp/predictmygrade-login.html -w '%{http_code}' --max-time 30 https://predictmygrade-demo.onrender.com/accounts/login/ || true)"
+            if [ "$code" = "200" ] && grep -q "Continue as Demo User" /tmp/predictmygrade-login.html; then
+              echo "PredictMyGrade live demo is ready."
+              exit 0
+            fi
+            echo "Attempt $attempt: HTTP $code; waiting for Render."
+            sleep 10
+          done
+          echo "Live demo never became healthy."
+          exit 1
+
+      - name: Exercise public recruiter journey
+        env:
+          LIVE_DEMO_URL: https://predictmygrade-demo.onrender.com
+        run: |
+          node <<'NODE'
+          const { chromium } = require('@playwright/test');
+
+          const assert = (condition, message) => {
+            if (!condition) throw new Error(message);
+          };
+
+          (async () => {
+            const browser = await chromium.launch();
+            const context = await browser.newContext();
+            const page = await context.newPage();
+            const base = process.env.LIVE_DEMO_URL;
+
+            const login = await page.goto(base + '/accounts/login/', {
+              waitUntil: 'domcontentloaded',
+              timeout: 120000,
+            });
+            assert(login && login.status() < 400, 'Login page did not load successfully');
+            await page.getByText('PredictMyGrade · Portfolio demo').waitFor();
+            const demoButton = page.getByRole('button', { name: 'Continue as Demo User' });
+            await demoButton.waitFor();
+            await Promise.all([
+              page.waitForLoadState('domcontentloaded'),
+              demoButton.click(),
+            ]);
+            assert(!page.url().includes('/accounts/login/'), 'Demo login did not leave the login page');
+
+            for (const path of ['/dashboard/', '/modules/', '/what-if/', '/settings/', '/demo-notice/']) {
+              const response = await page.goto(base + path, {
+                waitUntil: 'domcontentloaded',
+                timeout: 120000,
+              });
+              assert(response && response.status() < 400, path + ' returned HTTP ' + (response && response.status()));
+              const body = await page.locator('body').innerText();
+              assert(!/server error|internal server error|traceback/i.test(body), path + ' rendered an error page');
+            }
+
+            await page.goto(base + '/reports/ai/', { waitUntil: 'domcontentloaded' });
+            assert(/\/upgrade\/$/.test(new URL(page.url()).pathname), 'Free user was not gated to upgrade');
+
+            const monthly = page.locator('.js-upgrade-cta[data-plan="monthly"]');
+            await monthly.waitFor();
+            await monthly.click();
+            await page.waitForLoadState('domcontentloaded');
+            assert(page.url().includes('/payment/success/'), 'Mock upgrade did not reach success page');
+            assert(/demo upgrade complete/i.test(await page.locator('body').innerText()), 'Mock upgrade success message missing');
+
+            const premium = await page.goto(base + '/reports/ai/', { waitUntil: 'domcontentloaded' });
+            assert(premium && premium.status() < 400, 'Premium AI report did not load');
+            assert(/\/reports\/ai\/$/.test(new URL(page.url()).pathname), 'Premium feature remained gated after mock upgrade');
+
+            await page.goto(base + '/manage-subscription/', { waitUntil: 'domcontentloaded' });
+            const freeButton = page.getByRole('button', { name: 'Return to Free' });
+            await freeButton.waitFor();
+            page.once('dialog', dialog => dialog.accept());
+            await freeButton.click();
+            await page.waitForLoadState('domcontentloaded');
+            assert(/free demo plan/i.test(await page.locator('body').innerText()), 'Return-to-Free confirmation missing');
+
+            await page.goto(base + '/reports/ai/', { waitUntil: 'domcontentloaded' });
+            assert(/\/upgrade\/$/.test(new URL(page.url()).pathname), 'Premium gate was not restored after downgrade');
+
+            console.log('Live recruiter journey passed.');
+            await browser.close();
+          })().catch(error => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE
