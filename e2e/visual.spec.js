@@ -57,6 +57,8 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
             }
             if (name === 'upgrade') {
               await expect(page.locator('#upgrade-alert')).toBeHidden();
+              await expect(page.locator('.comparison-table')).toBeVisible();
+              await expect(page.locator('.comparison-table')).toContainText('Advanced analytics');
             }
             const consent = page.getByRole('button', { name: 'Only essential', exact: true });
             if (await consent.isVisible()) await consent.click();
