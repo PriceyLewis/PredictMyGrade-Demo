@@ -139,6 +139,32 @@
       color: var(--muted);
       font-size: 0.9rem;
     }
+    @media (max-width: 640px) {
+      .upgrade-page {
+        padding-inline: 0.75rem;
+      }
+      .plan-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .plan-card {
+        min-width: 0;
+        padding: 1.25rem;
+      }
+      .comparison-table {
+        table-layout: fixed;
+      }
+      .comparison-table th,
+      .comparison-table td {
+        padding: 0.7rem 0.4rem;
+        font-size: 0.82rem;
+        overflow-wrap: anywhere;
+      }
+      .comparison-table td:first-child,
+      .comparison-table th:first-child {
+        min-width: 0;
+        width: 58%;
+      }
+    }
   </style>
   <style>
     .premium-status-card {
