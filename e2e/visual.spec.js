@@ -40,6 +40,15 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
             expect(response.status()).toBe(200);
             expect(new URL(page.url()).pathname).toBe(new URL(url, baseURL).pathname);
             await expect(page.locator('main.page')).toBeVisible();
+            if (name === 'upgrade' && viewport.width <= 640) {
+              await page.evaluate(() => {
+                localStorage.removeItem('predictmygrade.cookieConsent');
+                document.cookie = 'pmg_cookie_consent=;path=/;max-age=0;SameSite=Lax';
+              });
+              await page.reload({ waitUntil: 'domcontentloaded' });
+              await expect(page.locator('main.page')).toBeVisible();
+              await expect(page.locator('[data-cookie-banner]')).toBeVisible();
+            }
             if (name === 'welcome') {
               await expect(page.locator('.feature-card').first()).toContainText('Grade Tracker');
               const readable = await page.locator('.feature-card').first().evaluate(element => {
@@ -72,24 +81,24 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
 
                 const cookieBanner = page.locator('[data-cookie-banner]');
                 const monthlyCta = page.locator('.js-upgrade-cta[data-plan="monthly"]').first();
-                if (await cookieBanner.isVisible() && await monthlyCta.isVisible()) {
-                  const [bannerBox, ctaBox] = await Promise.all([
-                    cookieBanner.boundingBox(),
-                    monthlyCta.boundingBox(),
-                  ]);
-                  expect(bannerBox).not.toBeNull();
-                  expect(ctaBox).not.toBeNull();
-                  expect(
-                    bannerBox.y >= ctaBox.y + ctaBox.height + 4 ||
-                    ctaBox.y >= bannerBox.y + bannerBox.height + 4,
-                    'Cookie banner must not overlap the monthly upgrade CTA on mobile'
-                  ).toBeTruthy();
-                  await page.screenshot({
-                    path: testInfo.outputPath(`${name}-${viewport.width}-${theme}-cookie-visible.png`),
-                    fullPage: false,
-                    animations: 'disabled',
-                  });
-                }
+                await expect(cookieBanner).toBeVisible();
+                await expect(monthlyCta).toBeVisible();
+                const [bannerBox, ctaBox] = await Promise.all([
+                  cookieBanner.boundingBox(),
+                  monthlyCta.boundingBox(),
+                ]);
+                expect(bannerBox).not.toBeNull();
+                expect(ctaBox).not.toBeNull();
+                expect(
+                  bannerBox.y >= ctaBox.y + ctaBox.height + 4 ||
+                  ctaBox.y >= bannerBox.y + bannerBox.height + 4,
+                  'Cookie banner must not overlap the monthly upgrade CTA on mobile'
+                ).toBeTruthy();
+                await page.screenshot({
+                  path: testInfo.outputPath(`${name}-${viewport.width}-${theme}-cookie-visible.png`),
+                  fullPage: false,
+                  animations: 'disabled',
+                });
               }
             }
             const consent = page.getByRole('button', { name: 'Only essential', exact: true });
