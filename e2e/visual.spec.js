@@ -57,8 +57,19 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
             }
             if (name === 'upgrade') {
               await expect(page.locator('#upgrade-alert')).toBeHidden();
+              await expect(page.locator('.plan-card')).toHaveCount(2);
+              await expect(page.locator('.plan-card').nth(0)).toBeVisible();
+              await expect(page.locator('.plan-card').nth(1)).toBeVisible();
               await expect(page.locator('.comparison-table')).toBeVisible();
               await expect(page.locator('.comparison-table')).toContainText('Advanced analytics');
+              if (viewport.width <= 640) {
+                const headerStyle = await page.locator('.comparison-table th').last().evaluate(element => ({
+                  whiteSpace: getComputedStyle(element).whiteSpace,
+                  height: element.getBoundingClientRect().height,
+                }));
+                expect(headerStyle.whiteSpace).toBe('nowrap');
+                expect(headerStyle.height).toBeLessThan(50);
+              }
             }
             const consent = page.getByRole('button', { name: 'Only essential', exact: true });
             if (await consent.isVisible()) await consent.click();
