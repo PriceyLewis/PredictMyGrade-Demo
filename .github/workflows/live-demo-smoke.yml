@@ -89,6 +89,7 @@ jobs:
             const monthly = page.locator('.js-upgrade-cta[data-plan="monthly"]');
             await monthly.waitFor();
             await monthly.click();
+            await page.waitForURL(/\/payment\/success\//, { timeout: 30000 });
             await page.waitForLoadState('domcontentloaded');
             assert(page.url().includes('/payment/success/'), 'Mock upgrade did not reach success page');
             assert(/demo upgrade complete/i.test(await page.locator('body').innerText()), 'Mock upgrade success message missing');
@@ -102,7 +103,7 @@ jobs:
             await freeButton.waitFor();
             page.once('dialog', dialog => dialog.accept());
             await freeButton.click();
-            await page.waitForLoadState('domcontentloaded');
+            await page.getByText(/free demo plan/i).waitFor({ timeout: 30000 });
             assert(/free demo plan/i.test(await page.locator('body').innerText()), 'Return-to-Free confirmation missing');
 
             await page.goto(base + '/reports/ai/', { waitUntil: 'domcontentloaded' });
