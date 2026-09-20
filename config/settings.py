@@ -51,6 +51,12 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+# Render injects the public hostname automatically for web services. Accepting it
+# here keeps the demo deploy zero-config without broadening ALLOWED_HOSTS to "*".
+_render_external_hostname = os.getenv("RENDER_EXTERNAL_HOSTNAME", "").strip()
+if _render_external_hostname and _render_external_hostname not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_render_external_hostname)
+
 
 
 # ---------------------------------------------------------------------------
@@ -161,7 +167,7 @@ else:
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
-    raise ImproperlyConfigured("DATABASE_URL must be provided and point to PostgreSQL.")
+    raise ImproperlyConfigured("DATABASE_URL must be provided.")
 
 _database_config = dj_database_url.parse(
     DATABASE_URL,
@@ -219,6 +225,13 @@ CSRF_TRUSTED_ORIGINS = [
     for origin in _raw_csrf_origins.split(",")
     if origin.strip()
 ]
+
+# Render also injects the full public HTTPS URL. Trust only that exact origin so
+# POST forms work on the generated onrender.com domain without manual setup.
+_render_external_url = os.getenv("RENDER_EXTERNAL_URL", "").rstrip("/")
+if _render_external_url:
+    CSRF_TRUSTED_ORIGINS.append(_render_external_url)
+
 if DEBUG:
     CSRF_TRUSTED_ORIGINS += [
         "http://localhost",
