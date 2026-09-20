@@ -84,6 +84,11 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
                     ctaBox.y >= bannerBox.y + bannerBox.height + 4,
                     'Cookie banner must not overlap the monthly upgrade CTA on mobile'
                   ).toBeTruthy();
+                  await page.screenshot({
+                    path: testInfo.outputPath(`${name}-${viewport.width}-${theme}-cookie-visible.png`),
+                    fullPage: false,
+                    animations: 'disabled',
+                  });
                 }
               }
             }
