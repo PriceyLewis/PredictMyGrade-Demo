@@ -297,6 +297,53 @@
       background: rgba(255, 255, 255, 0.08);
       color: rgba(255, 255, 255, 0.8);
     }
+
+    /* Keep the welcome hub readable when the account uses the light theme.
+       The base product stylesheet intentionally turns generic feature cards white,
+       so hard-coded dark-theme text/backgrounds here need explicit light variants. */
+    .theme-light .welcome-hero {
+      background: linear-gradient(120deg, rgba(124, 58, 237, 0.10), rgba(255, 255, 255, 0.96));
+      border-color: rgba(76, 29, 149, 0.14);
+    }
+    .theme-light .hero-note,
+    .theme-light .welcome-hero .eyebrow,
+    .theme-light .hero-highlights,
+    .theme-light .hero-highlights span {
+      color: var(--color-text-soft);
+    }
+    .theme-light .snapshot-card,
+    .theme-light .insight-panel,
+    .theme-light .focus-card,
+    .theme-light .insight-panel li.empty-illustration,
+    .theme-light .onboarding-steps li {
+      background: var(--color-card);
+      border-color: var(--color-border);
+      color: var(--color-text);
+    }
+    .theme-light .snapshot-card header,
+    .theme-light .snapshot-card .muted,
+    .theme-light .feature-card p,
+    .theme-light .focus-card strong,
+    .theme-light .status-pill {
+      color: var(--color-text-muted);
+    }
+    .theme-light .feature-card {
+      color: var(--color-text);
+    }
+    .theme-light .feature-card i,
+    .theme-light .step-link {
+      color: var(--color-brand);
+    }
+    .theme-light .progress-bar,
+    .theme-light .step-index,
+    .theme-light .status-pill {
+      background: var(--color-surface-alt);
+    }
+    .theme-light .onboarding-steps li.is-done,
+    .theme-light .checklist-complete {
+      background: rgba(22, 163, 74, 0.08);
+      border-color: rgba(22, 163, 74, 0.24);
+    }
     @media (max-width: 640px) {
       .welcome-shell {
         padding-top: 1.5rem;
