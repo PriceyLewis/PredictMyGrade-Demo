@@ -69,6 +69,22 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
                 }));
                 expect(headerStyle.whiteSpace).toBe('nowrap');
                 expect(headerStyle.height).toBeLessThan(50);
+
+                const cookieBanner = page.locator('[data-cookie-banner]');
+                const monthlyCta = page.locator('.js-upgrade-cta[data-plan="monthly"]').first();
+                if (await cookieBanner.isVisible() && await monthlyCta.isVisible()) {
+                  const [bannerBox, ctaBox] = await Promise.all([
+                    cookieBanner.boundingBox(),
+                    monthlyCta.boundingBox(),
+                  ]);
+                  expect(bannerBox).not.toBeNull();
+                  expect(ctaBox).not.toBeNull();
+                  expect(
+                    bannerBox.y >= ctaBox.y + ctaBox.height + 4 ||
+                    ctaBox.y >= bannerBox.y + bannerBox.height + 4,
+                    'Cookie banner must not overlap the monthly upgrade CTA on mobile'
+                  ).toBeTruthy();
+                }
               }
             }
             const consent = page.getByRole('button', { name: 'Only essential', exact: true });
