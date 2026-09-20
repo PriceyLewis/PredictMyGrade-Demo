@@ -2243,8 +2243,10 @@ def dashboard(request):
             "saveDeadlines": reverse("core:save_upcoming_deadlines"),
             "studyGoals": reverse("core:study_goals"),
             "liveData": reverse("core:dashboard_live_data"),
-            "aiInsights": reverse("core:ai_insights_feed"),
-            "aiInsightFeedback": reverse("core:ai_insight_feedback"),
+            # Free accounts receive preview insights in the bootstrap/live payload.
+            # Avoid calling premium-only endpoints that deliberately return 403.
+            "aiInsights": reverse("core:ai_insights_feed") if has_access else None,
+            "aiInsightFeedback": reverse("core:ai_insight_feedback") if has_access else None,
             "weeklyGoals": reverse("core:weekly_goals_data"),
             "studyHabits": reverse("core:study_habits_data"),
             "mentorTip": reverse("core:ai_mentor_tip"),

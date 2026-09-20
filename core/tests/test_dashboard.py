@@ -54,6 +54,22 @@ class DashboardPlannerTests(TestCase):
         self.assertIn('averages', data)
         self.assertIn('urls', data)
 
+    def test_free_dashboard_does_not_advertise_premium_insight_endpoints(self):
+        self.user.profile.set_premium(False)
+        response = self.client.get(reverse('core:dashboard'))
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.context['dashboard_bootstrap'])
+        self.assertIsNone(data['urls']['aiInsights'])
+        self.assertIsNone(data['urls']['aiInsightFeedback'])
+
+    def test_premium_dashboard_advertises_insight_endpoints(self):
+        self.user.profile.set_premium(True)
+        response = self.client.get(reverse('core:dashboard'))
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.context['dashboard_bootstrap'])
+        self.assertEqual(data['urls']['aiInsights'], reverse('core:ai_insights_feed'))
+        self.assertEqual(data['urls']['aiInsightFeedback'], reverse('core:ai_insight_feedback'))
+
 
 class DashboardViewContextTests(TestCase):
     def setUp(self):

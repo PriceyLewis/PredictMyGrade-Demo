@@ -22,7 +22,10 @@ export function debounce(fn, wait = 300) {
 
 export async function requestJSON(url, options = {}) {
   const resp = await fetch(url, options);
-  if (resp.status === 401 || resp.status === 403) {
+  const contentType = resp.headers.get('content-type') || '';
+  const redirectedToLogin =
+    resp.redirected && /\/accounts\/login\/?(?:\?|$)/.test(new URL(resp.url).pathname);
+  if (resp.status === 401 || redirectedToLogin) {
     try {
       if (window.showToast) {
         window.showToast('Session expired. Please sign in again.', 'error');
@@ -36,7 +39,21 @@ export async function requestJSON(url, options = {}) {
   }
   if (!resp.ok) {
     const text = await resp.text();
-    throw new Error(text || resp.statusText);
+    let message = text || resp.statusText;
+    if (contentType.includes('application/json') && text) {
+      try {
+        const payload = JSON.parse(text);
+        message = payload.error || payload.detail || message;
+      } catch (_) {
+        // Keep the response text when a server labels malformed content as JSON.
+      }
+    }
+    const error = new Error(message);
+    error.status = resp.status;
+    throw error;
+  }
+  if (!contentType.includes('application/json')) {
+    throw new Error('Expected a JSON response from the server.');
   }
   return resp.json();
 }

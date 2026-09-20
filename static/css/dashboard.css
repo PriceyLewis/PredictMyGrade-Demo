@@ -2393,6 +2393,9 @@ footer a:hover {
 
 .dashboard-shell {
   display: grid;
+  grid-template-areas:
+    "main"
+    "side";
   grid-template-columns: 1fr;
   gap: 1.25rem;
   align-items: start;
@@ -2400,21 +2403,21 @@ footer a:hover {
 }
 
  .dashboard-shell > main {
-   order: 1;
+   grid-area: main;
  }
 
  .dashboard-shell > .dashboard-side {
-   order: 2;
+   grid-area: side;
  }
+
+.dashboard-shell > .section-divider {
+  display: none;
+}
 
 @media (min-width: 1180px) {
   .dashboard-shell {
+    grid-template-areas: "main side";
     grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.9fr);
-  }
-
-  .dashboard-shell > main,
-  .dashboard-shell > .dashboard-side {
-    order: 0;
   }
 }
 

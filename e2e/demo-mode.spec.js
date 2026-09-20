@@ -4,6 +4,27 @@ const path = require('node:path');
 const freeUserStorageState = path.join(__dirname, '.auth', 'free-user.json');
 
 test.describe('portfolio demo flows', () => {
+  test('free dashboard remains signed in and does not poll premium insight feeds', async ({ browser, baseURL }) => {
+    const context = await browser.newContext({ storageState: freeUserStorageState, baseURL });
+    const page = await context.newPage();
+    const insightRequests = [];
+    page.on('request', request => {
+      if (/dashboard\/ai_insights\/?$/.test(new URL(request.url()).pathname)) {
+        insightRequests.push(request.url());
+      }
+    });
+
+    await page.goto('/dashboard/?skip_welcome=1');
+    await expect(page).toHaveURL(/\/dashboard\//);
+    await expect(page.locator('main.page')).toBeVisible();
+    await page.waitForTimeout(2500);
+    await expect(page).toHaveURL(/\/dashboard\//);
+    await expect(page.getByText('Session expired. Please sign in again.')).toHaveCount(0);
+    expect(insightRequests).toEqual([]);
+
+    await context.close();
+  });
+
   test('public sign-in exposes demo access without external providers', async ({ browser, baseURL }) => {
     const context = await browser.newContext({
       baseURL,
