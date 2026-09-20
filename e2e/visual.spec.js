@@ -22,7 +22,9 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
         test(`${name} visual review`, async ({ browser, baseURL }, testInfo) => {
           const context = await browser.newContext({
             baseURL, viewport, colorScheme: theme, reducedMotion: 'reduce',
-            storageState: authenticated ? './e2e/.auth/user.json' : undefined,
+            storageState: authenticated
+              ? (name === 'upgrade' ? './e2e/.auth/upgrade-user.json' : './e2e/.auth/user.json')
+              : undefined,
           });
           try {
             await context.addInitScript(selectedTheme => {
