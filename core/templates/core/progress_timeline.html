@@ -136,7 +136,12 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', () => {
 if (window.AOS) AOS.init({ once: true });
+if (!window.Chart) {
+  console.error('Chart.js failed to load on Progress Timeline.');
+  return;
+}
 
 const ctx = document.getElementById('timelineChart').getContext('2d');
 const labels = {{ labels|safe }};
@@ -183,6 +188,7 @@ const chart = new Chart(ctx, {
       x: { ticks: { color: '#ccc' } }
     }
   }
+});
 });
 </script>
 
