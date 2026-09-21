@@ -7,6 +7,10 @@ const screens = [
   ['dashboard', '/dashboard/?skip_welcome=1', true],
   ['modules', '/modules/', true],
   ['college', '/college/', true],
+  ['gcse', '/gcse/', true],
+  ['compare-levels', '/compare/levels/', true],
+  ['target-grade', '/tools/target-grade/', true],
+  ['privacy-dashboard', '/privacy/dashboard/', true],
   ['what-if', '/what-if/', true],
   ['settings', '/settings/', true],
   ['history', '/snapshot/history/', true],
@@ -65,6 +69,29 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
               });
               expect(readable.heading).not.toBe(readable.background);
               expect(readable.body).not.toBe(readable.background);
+            }
+            if (name === 'modules' && viewport.width <= 640) {
+              const table = page.locator('.modules-table');
+              const tableLayout = await table.evaluate(element => ({
+                clientWidth: element.clientWidth,
+                scrollWidth: element.scrollWidth,
+                minWidth: getComputedStyle(element).minWidth,
+              }));
+              expect(tableLayout.scrollWidth, 'Modules editor must not require horizontal scrolling on mobile')
+                .toBeLessThanOrEqual(tableLayout.clientWidth + 1);
+              expect(tableLayout.minWidth).toBe('0px');
+              await expect(page.locator('#moduleBody tr[data-id]').first()).toBeVisible();
+            }
+            if (name === 'college' && viewport.width <= 640) {
+              for (const selector of ['#ucasPointsTable', '#offerTrackerTable']) {
+                const tableLayout = await page.locator(selector).evaluate(element => ({
+                  clientWidth: element.clientWidth,
+                  scrollWidth: element.scrollWidth,
+                }));
+                expect(tableLayout.scrollWidth, selector + ' must fit the mobile card')
+                  .toBeLessThanOrEqual(tableLayout.clientWidth + 1);
+              }
+              await expect(page.locator('.offer-create-form')).toBeVisible();
             }
             if (name === 'upgrade') {
               await expect(page.locator('#upgrade-alert')).toBeHidden();
