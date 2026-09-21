@@ -37,6 +37,11 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', () => {
+if (!window.Chart) {
+  console.error('Chart.js failed to load on Compare Academic Levels.');
+  return;
+}
 const labels = {{ labels|safe }};
 const data = {{ values|safe }};
 const chartText = getComputedStyle(document.documentElement).getPropertyValue('--color-text-muted').trim() || '#cfc8ff';
@@ -68,6 +73,7 @@ new Chart(document.getElementById("radarChart"), {
     }]
   },
   options: { scales:{r:{beginAtZero:true, ticks:{color:chartText}}}}
+});
 });
 </script>
 {% endblock %}
