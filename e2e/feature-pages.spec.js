@@ -112,6 +112,26 @@ test.describe('feature page coverage', () => {
     }));
   });
 
+  test('welcome tour navigation works from first step through finish', async ({ page }) => {
+    await page.goto('/welcome-tour/');
+    await expect(page.locator('#step-1')).toBeVisible();
+    await expect(page.locator('#step-2')).toBeHidden();
+
+    await page.getByRole('button', { name: 'Next →' }).click();
+    await expect(page.locator('#step-2')).toBeVisible();
+    await page.getByRole('button', { name: '← Back' }).click();
+    await expect(page.locator('#step-1')).toBeVisible();
+
+    for (let step = 2; step <= 5; step += 1) {
+      await page.getByRole('button', { name: /Next|Finish/ }).click();
+      await expect(page.locator('#step-' + step)).toBeVisible();
+    }
+
+    await expect(page.getByRole('button', { name: 'Finish' })).toBeVisible();
+    await page.getByRole('button', { name: 'Finish' }).click();
+    await expect(page).toHaveURL(/\/dashboard\/\?skip_welcome=1$/);
+  });
+
   test('target grade calculator returns a result in the browser', async ({ page }) => {
     await page.goto('/tools/target-grade/');
     await page.locator('[name="current_avg"]').fill('68');
