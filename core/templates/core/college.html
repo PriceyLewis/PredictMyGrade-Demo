@@ -91,9 +91,9 @@
   }
   .offer-pill {
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.05);
-    color: #f3f4ff;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
     padding: 0.35rem 0.85rem;
     font-size: 0.85rem;
     font-weight: 600;
@@ -104,20 +104,36 @@
     transition: background 0.2s ease, border-color 0.2s ease;
   }
   .offer-pill.active {
-    border-color: rgba(56, 189, 248, 0.9);
-    background: rgba(56, 189, 248, 0.18);
+    border-color: var(--color-brand);
+    background: var(--color-accent-soft);
+    color: var(--color-text);
   }
   .offer-pill .pill-count {
-    background: rgba(255, 255, 255, 0.12);
+    background: var(--color-accent-soft);
     border-radius: 999px;
     padding: 0 0.5rem;
     font-size: 0.75rem;
   }
   .offer-alert {
     font-size: 0.85rem;
-    color: #e0f2fe;
+    color: var(--color-text-soft);
     flex: 1;
     min-width: 220px;
+  }
+  .offer-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .college-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+  }
+  .college-table-wrap .table {
+    min-width: 560px;
   }
   @media (max-width: 640px) {
     .college-dashboard .level-hero {
@@ -125,6 +141,31 @@
     }
     .hero-actions {
       grid-template-columns: 1fr;
+    }
+    .offer-toolbar {
+      align-items: flex-start;
+    }
+    .offer-pill-group,
+    .offer-alert {
+      width: 100%;
+      min-width: 0;
+    }
+    .offer-card__header {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+    .offer-card__header .inline-form {
+      display: grid;
+      grid-template-columns: 1fr;
+      width: 100%;
+    }
+    .offer-card__header .inline-form .form-field {
+      min-width: 0;
+      width: 100%;
+    }
+    .college-table-wrap {
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
     }
   }
 </style>
@@ -248,7 +289,7 @@
           {% endif %}
         </div>
       </div>
-      <table class="table" id="offerTrackerTable">
+      <div class="college-table-wrap"><table class="table" id="ucasPointsTable">
         <thead>
           <tr>
             <th>Subject</th>
@@ -290,7 +331,7 @@
           <tr><td colspan="4" class="muted">Add module grades to calculate UCAS points.</td></tr>
           {% endfor %}
         </tbody>
-      </table>
+      </table></div>
       <div class="grid grid-2" style="gap:0.8rem; margin-top:0.9rem;">
         <div class="badge-ring">
           <span>Recorded</span>
@@ -317,7 +358,7 @@
     </div>
 
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div class="offer-card__header">
         <h3>Offer tracker</h3>
         <form method="post" action="{% url 'core:add_ucas_offer' %}" class="inline-form">
           {% csrf_token %}
@@ -356,7 +397,7 @@
           <button type="submit" class="export-btn">Add offer</button>
         </form>
       </div>
-      <table class="table" style="margin-top:0.8rem;">
+      <div class="college-table-wrap"><table class="table" id="offerTrackerTable" style="margin-top:0.8rem;">
         <thead>
           <tr>
             <th>University / Course</th>
@@ -453,7 +494,7 @@
           <tr><td colspan="4" class="muted">No offers tracked yet.</td></tr>
           {% endfor %}
         </tbody>
-      </table>
+      </table></div>
     </div>
   </div>
 
@@ -483,7 +524,7 @@
       <button type="button" class="export-btn" id="runScenarioBtn">Run scenario</button>
       <button type="button" class="export-btn" id="clearScenarioBtn">Clear</button>
     </div>
-    <table class="table" style="margin-top:0.8rem;" id="scenarioTable">
+    <div class="college-table-wrap"><table class="table" style="margin-top:0.8rem;" id="scenarioTable">
       <thead>
         <tr>
           <th>Subject</th>
@@ -495,7 +536,7 @@
       <tbody>
         <tr><td colspan="4" class="muted">No scenario entries yet.</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <div id="scenarioSummary" class="muted" style="margin-top:0.6rem;"></div>
   </div>
 
@@ -521,7 +562,7 @@
   <div class="card">
     <p class="card-subtitle">Review prediction gaps per subject to see where effort will have the biggest admissions impact.</p>
     {% if predicted_matrix %}
-    <table class="table">
+    <div class="college-table-wrap"><table class="table">
       <thead>
         <tr>
           <th>Subject</th>
@@ -546,7 +587,7 @@
         </tr>
         {% endfor %}
       </tbody>
-    </table>
+    </table></div>
     {% else %}
     <div class="empty-state">Add grades to generate your predicted vs target matrix.</div>
     {% endif %}
