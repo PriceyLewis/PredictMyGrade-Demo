@@ -129,7 +129,7 @@ test.describe('feature page coverage', () => {
 
     await expect(page.getByRole('button', { name: 'Finish' })).toBeVisible();
     await page.getByRole('button', { name: 'Finish' }).click();
-    await expect(page).toHaveURL(/\/dashboard\/\?skip_welcome=1$/);
+    await expect(page).toHaveURL(/\/\?skip_welcome=1$/);
   });
 
   test('target grade calculator returns a result in the browser', async ({ page }) => {
