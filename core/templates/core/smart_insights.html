@@ -5,15 +5,12 @@
 {% block body_attrs %} class="theme-{{ request.session.theme|default:'dark' }}"{% endblock %}
 {% block extra_css %}
   {{ block.super }}
-  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+  <link rel="stylesheet" href="{% static 'vendor/aos/aos.css' %}">
 {% endblock %}
 {% block extra_js %}
   {{ block.super }}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-  <script>
-      document.addEventListener("DOMContentLoaded", () => AOS.init({ duration: 800, once: true }));
-    </script>
+  <script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+  <script src="{% static 'vendor/aos/aos.js' %}"></script>
 {% endblock %}
 {% block content %}
 <div class="page" data-aos="fade-up">
@@ -35,6 +32,12 @@
   </div>
 
   <script>
+    document.addEventListener('DOMContentLoaded', () => {
+    if (window.AOS) AOS.init({ duration: 800, once: true });
+    if (!window.Chart) {
+      console.error('Chart.js failed to load on Smart Study Insights.');
+      return;
+    }
     const ctx = document.getElementById('gradeChart');
     const chartData = {
       labels: [{% for module in modules %}'{{ module.name }}',{% endfor %}],
@@ -50,6 +53,7 @@
       type: 'bar',
       data: chartData,
       options: { scales: { y: { beginAtZero: true } } }
+    });
     });
   </script>
 {% endblock %}
