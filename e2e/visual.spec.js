@@ -7,10 +7,20 @@ const screens = [
   ['dashboard', '/dashboard/?skip_welcome=1', true],
   ['modules', '/modules/', true],
   ['college', '/college/', true],
+  ['gcse', '/gcse/', true],
+  ['compare-levels', '/compare/levels/', true],
+  ['timeline', '/timeline/', true],
+  ['ai-prediction', '/ai/predict/', true],
+  ['prediction-history', '/predictions/', true],
   ['what-if', '/what-if/', true],
+  ['what-if-history', '/what-if/history/', true],
+  ['target-grade', '/tools/target-grade/', true],
+  ['milestones', '/milestones/', true],
+  ['privacy', '/privacy/dashboard/', true],
   ['settings', '/settings/', true],
   ['history', '/snapshot/history/', true],
   ['welcome', '/welcome/', true],
+  ['pricing', '/pricing/', true],
   ['upgrade', '/upgrade/', true],
 ];
 
@@ -65,6 +75,24 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
               });
               expect(readable.heading).not.toBe(readable.background);
               expect(readable.body).not.toBe(readable.background);
+            }
+            if (name === 'modules' && viewport.width <= 640) {
+              const modulesTable = page.locator('.modules-table');
+              await expect(modulesTable).toBeVisible();
+              const tableLayout = await modulesTable.evaluate(element => ({
+                width: element.getBoundingClientRect().width,
+                scrollWidth: element.scrollWidth,
+                display: getComputedStyle(element).display,
+              }));
+              expect(tableLayout.scrollWidth).toBeLessThanOrEqual(tableLayout.width + 2);
+              await expect(page.locator('#moduleBody tr').first().locator('[data-label="Action"]')).toBeVisible();
+            }
+            if (name === 'college' && viewport.width <= 640) {
+              await expect(page.locator('.offer-pill').first()).toBeVisible();
+              await expect(page.locator('#offerAlertMessage')).toBeVisible();
+              const header = page.locator('.offer-card__header');
+              await expect(header).toBeVisible();
+              expect(await header.evaluate(element => getComputedStyle(element).display)).toBe('grid');
             }
             if (name === 'upgrade') {
               await expect(page.locator('#upgrade-alert')).toBeHidden();
