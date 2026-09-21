@@ -11,7 +11,6 @@ const screens = [
   ['compare-levels', '/compare/levels/', true],
   ['compare-all-levels', '/compare/all-levels/', true],
   ['timeline', '/timeline/', true],
-  ['ai-prediction', '/ai/predict/', true],
   ['prediction-history', '/predictions/', true],
   ['what-if', '/what-if/', true],
   ['what-if-history', '/what-if/history/', true],
