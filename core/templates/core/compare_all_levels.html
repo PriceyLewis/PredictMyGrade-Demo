@@ -5,16 +5,17 @@
 {% block extra_css %}
   {{ block.super }}
   <style>
-      body { background:#0f0b1a; color:#f4f2ff; font-family:Inter, sans-serif; padding:1.25rem; }
-      .page { max-width:1000px; margin:auto; }
-      .card { background:#1b1433; border:1px solid #2a214b; border-radius:16px; padding:1.2rem; margin-bottom:1rem; }
-      .title { font-size:1.6rem; font-weight:800; color:#c4b5fd; margin-bottom:1rem; }
-      .btn { text-decoration:none; background:linear-gradient(90deg,#7c3aed,#a78bfa); color:white; padding:.55rem 1rem; border-radius:.7rem; font-weight:600; }
+      body { background:var(--color-bg); color:var(--color-text); font-family:Inter, sans-serif; }
+      .page { max-width:1000px; margin:auto; padding:1.25rem 0; }
+      .card { background:var(--color-card); border:1px solid var(--color-border); border-radius:16px; padding:1.2rem; margin-bottom:1rem; }
+      .title { font-size:1.6rem; font-weight:800; color:var(--color-brand-soft); margin-bottom:1rem; }
+      .btn { text-decoration:none; background:linear-gradient(90deg,var(--color-brand),var(--color-brand-strong)); color:white; padding:.55rem 1rem; border-radius:.7rem; font-weight:600; }
+      @media(max-width:640px){.page{padding:.75rem 0}.card{padding:1rem}}
     </style>
 {% endblock %}
 {% block extra_js %}
   {{ block.super }}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
 {% endblock %}
 {% block content %}
 <div class="page">
@@ -38,6 +39,7 @@
 <script>
 const labels = {{ labels|safe }};
 const data = {{ values|safe }};
+const chartText = getComputedStyle(document.documentElement).getPropertyValue('--color-text-muted').trim() || '#cfc8ff';
 
 new Chart(document.getElementById("barChart"), {
   type: "bar",
@@ -49,7 +51,7 @@ new Chart(document.getElementById("barChart"), {
       backgroundColor: ["#7c3aed","#a78bfa","#c4b5fd"]
     }]
   },
-  options: { plugins:{ legend:{display:false} }, scales:{ y:{beginAtZero:true, ticks:{color:'#cfc8ffcc'}}}}
+  options: { plugins:{ legend:{display:false} }, scales:{ y:{beginAtZero:true, ticks:{color:chartText}}}}
 });
 
 new Chart(document.getElementById("radarChart"), {
@@ -65,7 +67,7 @@ new Chart(document.getElementById("radarChart"), {
       pointBackgroundColor: "#c4b5fd"
     }]
   },
-  options: { scales:{r:{beginAtZero:true, ticks:{color:'#cfc8ffcc'}}}}
+  options: { scales:{r:{beginAtZero:true, ticks:{color:chartText}}}}
 });
 </script>
 {% endblock %}
