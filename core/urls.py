@@ -51,6 +51,8 @@ urlpatterns = [
     path("accounts/signup/", views.signup_disabled_view, name="signup_disabled"),
     path("whats-new/", views.whats_new, name="whats_new"),
     path("contact-support/", views.contact_support, name="contact_support"),
+    path("study-suggestions/", views.study_suggestions_page, name="study_suggestions"),
+    path("study-suggestions/data/", views.study_suggestions_data, name="study_suggestions_data"),
 
     # Planner APIs
     path("save_future_modules/", views.save_future_modules, name="save_future_modules"),
@@ -150,7 +152,6 @@ urlpatterns = [
 
 STATIC_PAGES = {
     "college/": ("college", "core/college.html"),
-    "study-suggestions/": ("study_suggestions", "core/study_suggestions.html"),
     "smart-insights/": ("smart_insights_page", "core/smart_insights.html"),
     "help/": ("help", "core/help.html"),
     "feedback/": ("feedback", "core/feedback.html"),
