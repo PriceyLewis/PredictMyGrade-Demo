@@ -7,9 +7,9 @@
 
 ## Portfolio release status
 
-**v1.0.0 Portfolio Release · Verified 20 September 2026**
+**v1.0.0 Portfolio Release · Fully verified 21 September 2026**
 
-This is the recruiter-facing release of the project. Automated tests and the public demo journey have been re-verified before publication.
+This is the recruiter-facing release of the project. The final release audit passed **115 Django backend tests and 130 Playwright browser/visual tests**, plus the public live-demo smoke test and GitHub Pages deployment checks.
 
 [Read the v1.0.0 release notes](./RELEASE_NOTES_v1.0.0.md)
 
@@ -161,7 +161,7 @@ npm install
 npm run test:e2e
 ```
 
-The Playwright configuration runs Django against a local SQLite database with mock billing and in-memory email. Browser coverage includes the demo login surface, Premium upgrade, Premium-only access, mock plan controls, and downgrade back to Free.
+The Playwright configuration runs Django against a local SQLite database with mock billing and in-memory email. The final portfolio audit passed **115/115 Django tests** and **130/130 Playwright tests**, including desktop/mobile and light/dark visual regression coverage, demo login, academic CRUD flows, forecasting, settings, mock Premium upgrade/downgrade, admin surfaces, and recruiter-facing page checks.
 
 ## Not A Production Runbook
 
