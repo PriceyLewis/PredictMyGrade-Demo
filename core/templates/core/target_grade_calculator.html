@@ -70,13 +70,16 @@
 
 <style>
 .page { padding: 2rem; max-width: 700px; margin: auto; }
-.card { background: #1e1e2f; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; }
+.card { background: var(--color-card); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; }
 .form-group { margin-bottom: 1rem; }
-label { display: block; font-weight: 600; margin-bottom: 0.4rem; }
-input, select { width: 100%; padding: 0.5rem; border-radius: 0.5rem; border: 1px solid #444; background: #2a2a3f; color: #fff; }
-.btn.primary { background: #7c3aed; color: #fff; padding: 0.6rem 1.2rem; border-radius: 0.5rem; }
-.text-red-400 { color: #ef4444; }
-.text-yellow-400 { color: #facc15; }
-.text-green-400, .text-green-300 { color: #22c55e; }
+label { display: block; font-weight: 600; margin-bottom: 0.4rem; color: var(--color-text); }
+input, select { width: 100%; padding: 0.65rem 0.7rem; border-radius: 0.5rem; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); }
+input:focus, select:focus { outline: 3px solid var(--color-accent-soft); border-color: var(--color-brand); }
+.btn.primary { background: var(--color-brand); color: #fff; padding: 0.6rem 1.2rem; border-radius: 0.5rem; }
+.text-red-400 { color: var(--color-danger, #ef4444); }
+.text-yellow-400 { color: #b7791f; }
+.theme-dark .text-yellow-400 { color: #facc15; }
+.text-green-400, .text-green-300 { color: var(--color-success, #22c55e); }
+@media (max-width: 640px) { .page { padding: 1rem 0; } .card { padding: 1rem; } }
 </style>
 {% endblock %}
