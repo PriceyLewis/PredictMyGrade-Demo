@@ -15,7 +15,6 @@ const userPages = [
   '/progress/timeline/',
   '/reports/ai/',
   '/smart-insights/',
-  '/ai/predict/',
   '/predictions/',
   '/what-if/',
   '/what-if/history/',
@@ -47,7 +46,7 @@ test.describe('feature page coverage', () => {
       const response = await page.goto(route, { waitUntil: 'domcontentloaded' });
       expect(response, route + ' should return a response').not.toBeNull();
       expect(response.status(), route + ' should not return an HTTP error').toBeLessThan(400);
-      await expect(page.locator('main')).toBeVisible();
+      await expect(page.locator('main.page')).toBeVisible();
       const body = await page.locator('body').innerText();
       expect(body, route + ' should not render a server error').not.toMatch(/internal server error|traceback|server error \(500\)/i);
     }
@@ -63,7 +62,7 @@ test.describe('feature page coverage', () => {
         const response = await page.goto(route, { waitUntil: 'domcontentloaded' });
         expect(response, route + ' should return a response').not.toBeNull();
         expect(response.status(), route + ' should not return an HTTP error').toBeLessThan(400);
-        await expect(page.locator('main')).toBeVisible();
+        await expect(page.locator('main.page')).toBeVisible();
         await expect(page).not.toHaveURL(/accounts\/login/);
       }
     } finally {
@@ -99,6 +98,18 @@ test.describe('feature page coverage', () => {
     page.once('dialog', dialog => dialog.accept().catch(() => {}));
     await row.locator('form[action*="/delete/"] button[type="submit"]').click();
     await expect(page.locator('#offerTrackerTable')).not.toContainText(uniqueInstitution);
+  });
+
+  test('AI prediction endpoint returns a usable prediction payload', async ({ page }) => {
+    const response = await page.request.get('/ai/predict/');
+    expect(response.status()).toBeLessThan(400);
+    const payload = await response.json();
+    expect(payload).toEqual(expect.objectContaining({
+      predicted_average: expect.any(Number),
+      classification: expect.any(String),
+      confidence: expect.any(Number),
+      model: expect.any(String),
+    }));
   });
 
   test('target grade calculator returns a result in the browser', async ({ page }) => {
