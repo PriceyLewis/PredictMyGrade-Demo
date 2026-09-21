@@ -3,7 +3,29 @@
 {% block title %}Modules{% endblock %}
 {% block extra_css %}
 <style>
-.modules-page{display:grid;gap:1.25rem}.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}.page-header h1{margin:0}.module-form-grid{display:grid;grid-template-columns:minmax(12rem,2fr) repeat(3,minmax(8rem,1fr));gap:.8rem;align-items:end}.field{display:grid;gap:.35rem}.field label{color:var(--color-text-soft);font-size:.85rem;font-weight:700}.field input,.field select,.module-input{width:100%;min-height:2.7rem;padding:.65rem .75rem;border-radius:.7rem;border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text)}.field input:focus,.field select:focus,.module-input:focus{outline:3px solid var(--color-accent-soft);border-color:var(--color-brand)}.module-toolbar{display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem}.module-toolbar h2{margin:0}.module-toolbar__controls{display:flex;gap:.65rem;flex-wrap:wrap}.module-toolbar input,.module-toolbar select{min-height:2.5rem;padding:.55rem .7rem;border:1px solid var(--color-border);border-radius:.65rem;background:var(--color-surface);color:var(--color-text)}.modules-table{width:100%;border-collapse:collapse;min-width:720px}.modules-table th,.modules-table td{padding:.7rem;text-align:left;border-bottom:1px solid var(--color-divider)}.modules-table th{color:var(--color-text-soft);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em}.module-input[aria-invalid="true"]{border-color:var(--color-danger)}.module-status{min-width:5rem;color:var(--color-text-muted);font-size:.8rem}.empty-state{padding:2rem;text-align:center;color:var(--color-text-muted)}@media(max-width:760px){.module-form-grid{grid-template-columns:1fr 1fr}}@media(max-width:520px){.module-form-grid{grid-template-columns:1fr}}
+.modules-page{display:grid;gap:1.25rem}.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}.page-header h1{margin:0}.module-form-grid{display:grid;grid-template-columns:minmax(12rem,2fr) repeat(3,minmax(8rem,1fr));gap:.8rem;align-items:end}.field{display:grid;gap:.35rem}.field label{color:var(--color-text-soft);font-size:.85rem;font-weight:700}.field input,.field select,.module-input{width:100%;min-height:2.7rem;padding:.65rem .75rem;border-radius:.7rem;border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text)}.field input:focus,.field select:focus,.module-input:focus{outline:3px solid var(--color-accent-soft);border-color:var(--color-brand)}.module-toolbar{display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem}.module-toolbar h2{margin:0}.module-toolbar__controls{display:flex;gap:.65rem;flex-wrap:wrap}.module-toolbar input,.module-toolbar select{min-height:2.5rem;padding:.55rem .7rem;border:1px solid var(--color-border);border-radius:.65rem;background:var(--color-surface);color:var(--color-text)}.modules-table{width:100%;border-collapse:collapse;min-width:720px}.modules-table th,.modules-table td{padding:.7rem;text-align:left;border-bottom:1px solid var(--color-divider)}.modules-table th{color:var(--color-text-soft);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em}.module-input[aria-invalid="true"]{border-color:var(--color-danger)}.module-status{min-width:5rem;color:var(--color-text-muted);font-size:.8rem}.empty-state{padding:2rem;text-align:center;color:var(--color-text-muted)}
+@media(max-width:760px){
+  .module-form-grid{grid-template-columns:1fr 1fr}
+  .module-toolbar__controls{width:100%}
+  .module-toolbar__controls input,.module-toolbar__controls select{flex:1 1 12rem}
+  .table-responsive{overflow:visible}
+  .modules-table{display:block;min-width:0}
+  .modules-table thead{display:none}
+  .modules-table tbody{display:grid;gap:.8rem}
+  .modules-table tr{display:grid;gap:.55rem;padding:.85rem;border:1px solid var(--color-border);border-radius:.85rem;background:var(--color-surface)}
+  .modules-table tr[hidden]{display:none!important}
+  .modules-table td{display:grid;grid-template-columns:6.25rem minmax(0,1fr);align-items:center;gap:.75rem;padding:.08rem 0;border:0}
+  .modules-table td::before{content:attr(data-label);color:var(--color-text-soft);font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+  .modules-table td.empty-state{display:block;padding:1rem;text-align:left}
+  .modules-table td.empty-state::before{content:none}
+  .modules-table .module-status{min-width:0}
+  .modules-table .delete-form,.modules-table .delete-form .btn{width:100%}
+}
+@media(max-width:520px){
+  .module-form-grid{grid-template-columns:1fr}
+  .module-toolbar__controls{display:grid;width:100%}
+  .modules-table td{grid-template-columns:1fr;gap:.3rem}
+}
 </style>
 {% endblock %}
 {% block content %}
@@ -24,12 +46,12 @@
     <div class="module-toolbar"><h2 id="saved-modules-title">Saved modules</h2><div class="module-toolbar__controls"><label class="sr-only" for="searchModules">Search modules</label><input id="searchModules" type="search" placeholder="Search modules"><label class="sr-only" for="sortSelect">Sort modules</label><select id="sortSelect"><option value="grade_percent">Highest grade</option><option value="name">Name A–Z</option><option value="credits">Most credits</option><option value="level">Study level</option></select></div></div>
     <div class="table-responsive"><table class="modules-table"><thead><tr><th>Module</th><th>Level</th><th>Credits</th><th>Grade</th><th>Status</th><th>Action</th></tr></thead><tbody id="moduleBody">
       {% for module in modules %}<tr data-id="{{ module.pk }}" data-update-url="{% url 'core:module_update' module.pk %}">
-        <td><input class="module-input" data-field="name" value="{{ module.name }}" maxlength="128" aria-label="Module name"></td>
-        <td><select class="module-input" data-field="level" aria-label="Study level"><option value="UNI" {% if module.level == 'UNI' %}selected{% endif %}>University</option><option value="ALEVEL" {% if module.level == 'ALEVEL' %}selected{% endif %}>A-Level</option><option value="BTEC" {% if module.level == 'BTEC' %}selected{% endif %}>BTEC</option><option value="GCSE" {% if module.level == 'GCSE' %}selected{% endif %}>GCSE</option></select></td>
-        <td><input class="module-input" data-field="credits" type="number" min="0" max="100" step="1" value="{{ module.credits }}" aria-label="Credits"></td>
-        <td><input class="module-input" data-field="grade_percent" type="number" min="0" max="100" step="0.1" value="{{ module.grade_percent|default_if_none:'' }}" aria-label="Grade percentage"></td>
-        <td class="module-status" aria-live="polite">{% if module.is_sample %}Sample{% else %}Saved{% endif %}</td>
-        <td><form method="post" action="{% url 'core:module_delete' module.pk %}" class="delete-form">{% csrf_token %}<button class="btn ghost" type="submit">Delete</button></form></td>
+        <td data-label="Module"><input class="module-input" data-field="name" value="{{ module.name }}" maxlength="128" aria-label="Module name"></td>
+        <td data-label="Level"><select class="module-input" data-field="level" aria-label="Study level"><option value="UNI" {% if module.level == 'UNI' %}selected{% endif %}>University</option><option value="ALEVEL" {% if module.level == 'ALEVEL' %}selected{% endif %}>A-Level</option><option value="BTEC" {% if module.level == 'BTEC' %}selected{% endif %}>BTEC</option><option value="GCSE" {% if module.level == 'GCSE' %}selected{% endif %}>GCSE</option></select></td>
+        <td data-label="Credits"><input class="module-input" data-field="credits" type="number" min="0" max="100" step="1" value="{{ module.credits }}" aria-label="Credits"></td>
+        <td data-label="Grade"><input class="module-input" data-field="grade_percent" type="number" min="0" max="100" step="0.1" value="{{ module.grade_percent|default_if_none:'' }}" aria-label="Grade percentage"></td>
+        <td data-label="Status" class="module-status" aria-live="polite">{% if module.is_sample %}Sample{% else %}Saved{% endif %}</td>
+        <td data-label="Action"><form method="post" action="{% url 'core:module_delete' module.pk %}" class="delete-form">{% csrf_token %}<button class="btn ghost" type="submit">Delete</button></form></td>
       </tr>{% empty %}<tr id="emptyModules"><td colspan="6" class="empty-state">No modules yet. Add your first result above.</td></tr>{% endfor %}
     </tbody></table></div>
   </section>

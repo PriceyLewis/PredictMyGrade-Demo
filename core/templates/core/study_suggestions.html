@@ -15,19 +15,43 @@
 
   <div class="card center">
     <h3>Your personalised study tips</h3>
-    <ul id="tipsList" class="list" style="margin-top:1rem;"></ul>
+    <ul id="tipsList" class="list" style="margin-top:1rem;">
+      {% for tip in tips %}
+      <li style="text-align:left;">{{ tip }}</li>
+      {% endfor %}
+    </ul>
     <button id="refreshBtn" class="btn" style="margin-top:1rem;">🔄 Refresh Tips</button>
+    <p id="tipsStatus" class="muted small" aria-live="polite"></p>
   </div>
 </div>
 
 <script>
 async function loadTips(){
-  const res = await fetch("{% url 'core:study_suggestions' %}");
-  const data = await res.json();
-  const list = document.getElementById("tipsList");
-  list.innerHTML = data.tips.map(t => `<li style="text-align:left;">${t}</li>`).join("");
+  const button = document.getElementById("refreshBtn");
+  const status = document.getElementById("tipsStatus");
+  button.disabled = true;
+  status.textContent = "Refreshing suggestions…";
+  try {
+    const res = await fetch("{% url 'core:study_suggestions_data' %}", {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    });
+    if (!res.ok) throw new Error("Unable to refresh suggestions.");
+    const data = await res.json();
+    const list = document.getElementById("tipsList");
+    list.replaceChildren();
+    (data.tips || []).forEach((tip) => {
+      const item = document.createElement("li");
+      item.style.textAlign = "left";
+      item.textContent = tip;
+      list.appendChild(item);
+    });
+    status.textContent = "Suggestions refreshed.";
+  } catch (error) {
+    status.textContent = error.message || "Unable to refresh suggestions.";
+  } finally {
+    button.disabled = false;
+  }
 }
 document.getElementById("refreshBtn").addEventListener("click", loadTips);
-loadTips();
 </script>
 {% endblock %}

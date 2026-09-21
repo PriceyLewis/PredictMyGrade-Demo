@@ -4229,6 +4229,74 @@ def _assistant_chat_payload(
     return payload, 200
 
 
+def _study_suggestion_items(user) -> list[str]:
+    modules = list(
+        Module.objects.filter(user=user, level="UNI").order_by("grade_percent", "name")
+    )
+    graded = [module for module in modules if module.grade_percent is not None]
+    suggestions: list[str] = []
+
+    if not modules:
+        return [
+            "Add your first university module so PredictMyGrade can tailor study suggestions to your results.",
+            "Create a study plan for your next assessment and keep the session short enough to complete consistently.",
+            "Take a prediction snapshot after entering results so you can compare progress over time.",
+        ]
+
+    if graded:
+        lowest = graded[0]
+        average = round(_weighted_average(graded), 1)
+        suggestions.append(
+            f"Prioritise {lowest.name}: it is currently your lowest recorded module at {lowest.grade_percent:.1f}%."
+        )
+        if average < 60:
+            suggestions.append(
+                "Use two focused revision blocks this week on the topics costing you the most marks, then log the next result."
+            )
+        elif average < 70:
+            suggestions.append(
+                "You are close to a First-class average; target the highest-credit assessments where a small improvement has the biggest effect."
+            )
+        else:
+            suggestions.append(
+                "Your current average is strong; protect it with spaced review and timed practice instead of increasing study volume blindly."
+            )
+    else:
+        suggestions.append(
+            "Add a grade to one of your modules so the suggestions can identify your strongest and weakest areas."
+        )
+
+    next_deadline = (
+        UpcomingDeadline.objects.filter(user=user, completed=False)
+        .order_by("due_date")
+        .first()
+    )
+    if next_deadline:
+        suggestions.append(
+            f"Plan backwards from {next_deadline.title} on {next_deadline.due_date:%d %b}: schedule the next revision block before the final 48 hours."
+        )
+    else:
+        suggestions.append(
+            "Add your next assessment deadline so the dashboard can turn these suggestions into a time-based study plan."
+        )
+
+    return suggestions[:3]
+
+
+@login_required
+def study_suggestions_page(request):
+    return render(
+        request,
+        "core/study_suggestions.html",
+        {"tips": _study_suggestion_items(request.user)},
+    )
+
+
+@login_required
+def study_suggestions_data(request):
+    return JsonResponse({"tips": _study_suggestion_items(request.user)})
+
+
 @login_required
 def ai_mentor_tip(request):
     allowed, note = _feature_guard(request, "ai.tip", daily_limit=5)

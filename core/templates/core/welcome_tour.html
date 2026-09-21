@@ -123,7 +123,7 @@
 
 <div class="tour-container">
   <!-- Skip button -->
-  <button class="skip-btn" onclick="window.location.href='{% url 'skip_tour' %}'">Skip tour ✕</button>
+  <button class="skip-btn" onclick="window.location.href='{% url 'core:dashboard_home' %}?skip_welcome=1'">Skip tour ✕</button>
 
   <!-- Step 1 -->
   <div class="tour-step active" id="step-1">
@@ -158,7 +158,7 @@
     <div class="tour-icon">📈</div>
     <div class="tour-title">Analytics & Snapshots</div>
     <div class="tour-desc">View your progress over time with snapshots, insights, and analytics dashboards built just for students.</div>
-    <button class="tour-btn primary" onclick="window.location.href='{% url 'complete_tour' %}'">🚀 Start Using PredictMyGrade</button>
+    <button class="tour-btn primary" onclick="window.location.href='{% url 'core:dashboard_home' %}?skip_welcome=1'">🚀 Start Using PredictMyGrade</button>
   </div>
 
   <div class="tour-nav">
@@ -193,7 +193,7 @@
     nextBtn.textContent = currentStep === totalSteps ? "Finish" : "Next →";
 
     if (currentStep === totalSteps) {
-      nextBtn.onclick = () => window.location.href = "{% url 'complete_tour' %}";
+      nextBtn.onclick = () => window.location.href = "{% url 'core:dashboard_home' %}?skip_welcome=1";
     } else {
       nextBtn.onclick = nextStep;
     }

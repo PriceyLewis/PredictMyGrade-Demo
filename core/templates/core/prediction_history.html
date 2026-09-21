@@ -6,8 +6,8 @@
   {{ block.super }}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <style>
-      :root{--bg:#0f0b1a;--bg-soft:#151027;--card:#1b1433;--card-2:#201a3f;
-        --text:#f4f2ff;--muted:#cfc8ffcc;--brand:#7c3aed;--brand-2:#a78bfa;--border:#2a214b;}
+      :root{--bg:var(--color-bg,#0f0b1a);--bg-soft:var(--color-surface,#151027);--card:var(--color-card,#1b1433);--card-2:var(--color-panel,#201a3f);
+        --text:var(--color-text,#f4f2ff);--muted:var(--color-text-muted,#cfc8ffcc);--brand:var(--color-brand,#7c3aed);--brand-2:var(--color-brand-soft,#a78bfa);--border:var(--color-border,#2a214b);}
       html,body{background:var(--bg);color:var(--text);font-family:Inter,sans-serif;}
       .page{max-width:1000px;margin:0 auto;padding:1.5rem;}
       .card{background:linear-gradient(180deg,var(--card),var(--card-2));border:1px solid var(--border);
@@ -24,6 +24,9 @@
       .compare-box{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.6rem;}
       select{background:var(--bg-soft);color:var(--text);border:1px solid var(--border);border-radius:.5rem;
         padding:.4rem .6rem;}
+      .prediction-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;}
+      .prediction-table-wrap table{min-width:980px;}
+      @media(max-width:640px){.page{padding:1rem .25rem}.card{padding:1rem}}
     </style>
 {% endblock %}
 {% block extra_js %}
@@ -46,7 +49,7 @@
   {% if history %}
   <div class="card">
     <h3>Previous Predictions</h3>
-    <table>
+    <div class="table-responsive prediction-table-wrap"><table>
       <tr>
         <th>Select</th>
         <th>Date</th>
@@ -73,7 +76,7 @@
         <td style="font-size:.85rem;color:var(--muted);">{{ h.ai_insight|default:"—" }}</td>
       </tr>
       {% endfor %}
-    </table>
+    </table></div>
   </div>
 
   <div class="card" style="margin-top:1rem;">
