@@ -1,6 +1,6 @@
 # PredictMyGrade Demo — v1.0.0 Portfolio Release
 
-**Release date:** 20 September 2026  
+**Release date:** 21 September 2026  
 **Status:** Recruiter-ready portfolio release
 
 Recruiter-ready Django product demo with verified Free/Premium journeys, forecasting tools, persistence and browser automation.
@@ -15,8 +15,9 @@ Recruiter-ready Django product demo with verified Free/Premium journeys, forecas
 
 ## Verification completed
 
-- Django configuration, migrations and backend regression tests pass.
-- Playwright E2E coverage passes across desktop and mobile, dark and light modes.
+- **115/115 Django backend tests pass.**
+- **130/130 Playwright browser and visual tests pass.**
+- Playwright coverage includes desktop/mobile and dark/light modes across the recruiter-facing feature set.
 - Free → Premium → Free mock billing journeys are verified.
 - Live Render smoke testing passes.
 - Mobile cookie-consent UI is regression-tested so it does not cover the upgrade CTA.
