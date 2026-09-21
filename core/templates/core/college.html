@@ -119,12 +119,142 @@
     flex: 1;
     min-width: 220px;
   }
+  .offer-tracker-header {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .offer-tracker-header h3 {
+    margin-bottom: 0;
+  }
+  .offer-create-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+  .offer-create-form .form-field {
+    min-width: 0;
+  }
+  .offer-create-form .export-btn {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+    margin-top: 0;
+  }
   @media (max-width: 640px) {
-    .college-dashboard .level-hero {
+    .college-dashboard .level-hero,
+    .hero-actions,
+    .college-dashboard .grid-2 {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .college-dashboard .card {
+      min-width: 0;
+    }
+    .offer-toolbar {
+      align-items: stretch;
+    }
+    .offer-pill-group {
+      width: 100%;
+    }
+    .offer-pill {
+      flex: 1 1 7rem;
+      justify-content: center;
+    }
+    .offer-alert {
+      min-width: 0;
+      width: 100%;
+    }
+    .offer-create-form {
       grid-template-columns: 1fr;
     }
-    .hero-actions {
+    .college-dashboard .ucas-points-table,
+    .college-dashboard .offer-tracker-table,
+    .college-dashboard .scenario-table,
+    .college-dashboard .prediction-matrix-table {
+      display: block;
+      width: 100%;
+    }
+    .college-dashboard .ucas-points-table thead,
+    .college-dashboard .offer-tracker-table thead,
+    .college-dashboard .scenario-table thead,
+    .college-dashboard .prediction-matrix-table thead {
+      display: none;
+    }
+    .college-dashboard .ucas-points-table tbody,
+    .college-dashboard .offer-tracker-table tbody,
+    .college-dashboard .scenario-table tbody,
+    .college-dashboard .prediction-matrix-table tbody {
+      display: grid;
+      gap: 0.7rem;
+    }
+    .college-dashboard .ucas-points-table tr,
+    .college-dashboard .offer-tracker-table tr,
+    .college-dashboard .scenario-table tr,
+    .college-dashboard .prediction-matrix-table tr {
+      display: grid;
+      gap: 0.45rem;
+      padding: 0.75rem;
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.16);
+    }
+    .college-dashboard .ucas-points-table td,
+    .college-dashboard .offer-tracker-table td,
+    .college-dashboard .scenario-table td,
+    .college-dashboard .prediction-matrix-table td {
+      display: grid;
+      grid-template-columns: minmax(82px, .42fr) minmax(0, 1fr);
+      gap: 0.65rem;
+      align-items: start;
+      min-width: 0;
+      padding: 0.2rem 0;
+      border: 0;
+      overflow-wrap: anywhere;
+    }
+    .college-dashboard .ucas-points-table td::before,
+    .college-dashboard .offer-tracker-table td::before,
+    .college-dashboard .scenario-table td::before,
+    .college-dashboard .prediction-matrix-table td::before {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .college-dashboard .ucas-points-table td:nth-child(1)::before,
+    .college-dashboard .scenario-table td:nth-child(1)::before,
+    .college-dashboard .prediction-matrix-table td:nth-child(1)::before { content: "Subject"; }
+    .college-dashboard .ucas-points-table td:nth-child(2)::before { content: "Recorded"; }
+    .college-dashboard .ucas-points-table td:nth-child(3)::before { content: "Predicted"; }
+    .college-dashboard .ucas-points-table td:nth-child(4)::before { content: "Tariff"; }
+    .college-dashboard .offer-tracker-table td:nth-child(1)::before { content: "University / course"; }
+    .college-dashboard .offer-tracker-table td:nth-child(2)::before { content: "Tariff"; }
+    .college-dashboard .offer-tracker-table td:nth-child(3)::before { content: "Status & details"; }
+    .college-dashboard .offer-tracker-table td:nth-child(4)::before { content: "Remove"; }
+    .college-dashboard .scenario-table td:nth-child(2)::before { content: "Qualification"; }
+    .college-dashboard .scenario-table td:nth-child(3)::before { content: "Grade"; }
+    .college-dashboard .scenario-table td:nth-child(4)::before { content: "Action"; }
+    .college-dashboard .prediction-matrix-table td:nth-child(2)::before { content: "Predicted"; }
+    .college-dashboard .prediction-matrix-table td:nth-child(3)::before { content: "Target"; }
+    .college-dashboard .prediction-matrix-table td:nth-child(4)::before { content: "Gap"; }
+    .college-dashboard .ucas-points-table td[colspan],
+    .college-dashboard .offer-tracker-table td[colspan],
+    .college-dashboard .scenario-table td[colspan],
+    .college-dashboard .prediction-matrix-table td[colspan] {
+      display: block;
+    }
+    .college-dashboard td[colspan]::before { display: none; }
+    .college-dashboard .offer-tracker-table .inline-form {
+      display: grid;
       grid-template-columns: 1fr;
+      width: 100%;
+    }
+    .college-dashboard .offer-tracker-table .form-field {
+      min-width: 0;
+    }
+    .college-dashboard .offer-tracker-table input,
+    .college-dashboard .offer-tracker-table select,
+    .college-dashboard .offer-tracker-table button {
+      width: 100%;
     }
   }
 </style>
@@ -248,7 +378,7 @@
           {% endif %}
         </div>
       </div>
-      <table class="table" id="offerTrackerTable">
+      <table class="table ucas-points-table" id="ucasPointsTable">
         <thead>
           <tr>
             <th>Subject</th>
@@ -317,9 +447,9 @@
     </div>
 
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div class="offer-tracker-header">
         <h3>Offer tracker</h3>
-        <form method="post" action="{% url 'core:add_ucas_offer' %}" class="inline-form">
+        <form method="post" action="{% url 'core:add_ucas_offer' %}" class="inline-form offer-create-form">
           {% csrf_token %}
           <div class="form-field">
             <label class="sr-only" for="offerInstitution">Institution</label>
@@ -356,7 +486,7 @@
           <button type="submit" class="export-btn">Add offer</button>
         </form>
       </div>
-      <table class="table" style="margin-top:0.8rem;">
+      <table class="table offer-tracker-table" id="offerTrackerTable" style="margin-top:0.8rem;">
         <thead>
           <tr>
             <th>University / Course</th>
@@ -483,7 +613,7 @@
       <button type="button" class="export-btn" id="runScenarioBtn">Run scenario</button>
       <button type="button" class="export-btn" id="clearScenarioBtn">Clear</button>
     </div>
-    <table class="table" style="margin-top:0.8rem;" id="scenarioTable">
+    <table class="table scenario-table" style="margin-top:0.8rem;" id="scenarioTable">
       <thead>
         <tr>
           <th>Subject</th>
@@ -521,7 +651,7 @@
   <div class="card">
     <p class="card-subtitle">Review prediction gaps per subject to see where effort will have the biggest admissions impact.</p>
     {% if predicted_matrix %}
-    <table class="table">
+    <table class="table prediction-matrix-table">
       <thead>
         <tr>
           <th>Subject</th>
