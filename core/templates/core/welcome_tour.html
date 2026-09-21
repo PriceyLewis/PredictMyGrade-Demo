@@ -7,23 +7,15 @@
 <link rel="stylesheet" href="{% static 'css/app.css' %}">
 
 <style>
-  body {
-    background: linear-gradient(135deg, #4A00E0, #8E2DE2);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-family: 'Inter', sans-serif;
-  }
-
   .tour-container {
-    background: #fff;
-    color: #333;
+    background: var(--color-card);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
     border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 20px 55px rgba(15, 23, 42, 0.14);
     padding: 3rem;
-    width: 700px;
+    width: min(700px, 100%);
+    margin: 2rem auto;
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -52,7 +44,7 @@
   .tour-desc {
     font-size: 1.1rem;
     margin-bottom: 2rem;
-    color: #555;
+    color: var(--color-text-muted);
   }
 
   .tour-nav {
@@ -71,13 +63,14 @@
   }
 
   .tour-btn.primary {
-    background: #6C63FF;
+    background: var(--color-brand);
     color: #fff;
   }
 
   .tour-btn.secondary {
-    background: #eee;
-    color: #333;
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
   }
 
   .progress-dots {
@@ -91,12 +84,12 @@
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: #ccc;
+    background: var(--color-border);
     transition: background 0.3s;
   }
 
   .dot.active {
-    background: #6C63FF;
+    background: var(--color-brand);
   }
 
   .skip-btn {
@@ -106,18 +99,30 @@
     font-size: 0.9rem;
     background: transparent;
     border: none;
-    color: #666;
+    color: var(--color-text-muted);
     cursor: pointer;
   }
 
   .skip-btn:hover {
-    color: #000;
+    color: var(--color-text);
     text-decoration: underline;
   }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 640px) {
+    .tour-container {
+      margin: 1rem auto;
+      padding: 2.75rem 1rem 1.25rem;
+      border-radius: 16px;
+    }
+    .tour-title { font-size: 1.55rem; }
+    .tour-desc { font-size: 1rem; }
+    .tour-nav { gap: .6rem; }
+    .tour-btn { flex: 1; padding: .7rem .85rem; }
   }
 </style>
 
