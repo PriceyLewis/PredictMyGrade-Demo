@@ -34,10 +34,11 @@
         td:nth-child(2)::before{content:"Size"}
         td:nth-child(3)::before{content:"Created"}
         td:nth-child(4)::before{content:"Actions"}
-        td:nth-child(4){grid-template-columns:minmax(78px,.4fr) minmax(0,1fr)}
-        td:nth-child(4) > *{width:100%;margin:.15rem 0}
-        td:nth-child(4) form{display:block!important}
-        td:nth-child(4) .btn{display:block;width:100%;text-align:center}
+        td:nth-child(4){grid-template-columns:1fr;gap:.45rem}
+        td:nth-child(4)::before{margin-bottom:.1rem}
+        td:nth-child(4) > *{width:100%;margin:0}
+        td:nth-child(4) form{display:block!important;width:100%}
+        td:nth-child(4) .btn{display:block;width:100%;text-align:center;white-space:nowrap}
       }
     </style>
 {% endblock %}
