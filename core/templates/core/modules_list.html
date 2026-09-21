@@ -13,6 +13,7 @@
   .modules-table thead{display:none}
   .modules-table tbody{display:grid;gap:.8rem}
   .modules-table tr{display:grid;gap:.55rem;padding:.85rem;border:1px solid var(--color-border);border-radius:.85rem;background:var(--color-surface)}
+  .modules-table tr[hidden]{display:none!important}
   .modules-table td{display:grid;grid-template-columns:6.25rem minmax(0,1fr);align-items:center;gap:.75rem;padding:.08rem 0;border:0}
   .modules-table td::before{content:attr(data-label);color:var(--color-text-soft);font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
   .modules-table td.empty-state{display:block;padding:1rem;text-align:left}
