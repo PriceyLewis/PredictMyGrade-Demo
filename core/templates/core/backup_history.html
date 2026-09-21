@@ -6,18 +6,39 @@
   {{ block.super }}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <style>
-      body { background:#0f0b1a; color:#f4f2ff; font-family:Inter,sans-serif; }
-      .page { max-width:1000px; margin:0 auto; padding:2rem; }
-      .header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:1.5rem; }
-      .btn { background:linear-gradient(135deg,#7c3aed,#a78bfa); color:#fff; padding:.55rem 1rem; border:none; border-radius:8px; cursor:pointer; text-decoration:none; font-weight:600; transition:.25s; }
-      .btn.secondary { background:#2a214b; border:1px solid #3b2c68; }
-      .btn:hover { filter:brightness(1.1); box-shadow:0 0 12px rgba(124,58,237,.4); transform:translateY(-1px); }
-      table { width:100%; border-collapse:collapse; margin-top:1rem; background:linear-gradient(180deg,#1b1433,#201a3f); border:1px solid #2a214b; border-radius:10px; overflow:hidden; }
-      th, td { padding:.75rem 1rem; text-align:left; border-bottom:1px solid #2a214b; }
-      th { color:#c4b5fd; background:#1b1433; }
-      tr:hover { background:rgba(124,58,237,0.08); transition:.25s; }
-      .muted { color:#cfc8ffcc; }
-      .empty { text-align:center; padding:2rem; color:#aaa; }
+      body { background:var(--color-bg); color:var(--color-text); font-family:Inter,sans-serif; }
+      .page { max-width:1000px; margin:0 auto; padding:2rem 0; }
+      .header { display:flex; justify-content:space-between; align-items:center; gap:.75rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+      .btn { background:linear-gradient(135deg,var(--color-brand),var(--color-brand-soft)); color:#fff; padding:.55rem 1rem; border:none; border-radius:8px; cursor:pointer; text-decoration:none; font-weight:600; transition:.25s; }
+      .btn.secondary { background:var(--color-surface-alt); color:var(--color-text); border:1px solid var(--color-border); }
+      .btn:hover { filter:brightness(1.05); transform:translateY(-1px); }
+      .backup-table-wrap { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:10px; border:1px solid var(--color-border); }
+      table { width:100%; min-width:640px; border-collapse:collapse; background:var(--color-card); }
+      th, td { padding:.75rem 1rem; text-align:left; border-bottom:1px solid var(--color-border); }
+      th { color:var(--color-brand-soft); background:var(--color-surface); }
+      tr:hover { background:var(--color-accent-soft); transition:.25s; }
+      .muted { color:var(--color-text-muted); }
+      .empty { text-align:center; padding:2rem; color:var(--color-text-muted); }
+      @media(max-width:640px){
+        .page{padding:1rem 0}
+        .header{align-items:flex-start}
+        .header .btn{width:100%;text-align:center}
+        .backup-table-wrap{overflow:visible;border:0}
+        table{display:block;min-width:0;background:transparent}
+        thead{display:none}
+        tbody{display:grid;gap:.75rem}
+        tr{display:grid;gap:.4rem;padding:.85rem;border:1px solid var(--color-border);border-radius:12px;background:var(--color-card)}
+        td{display:grid;grid-template-columns:minmax(78px,.4fr) minmax(0,1fr);gap:.6rem;align-items:start;padding:.15rem 0;border:0;min-width:0;overflow-wrap:anywhere}
+        td::before{font-size:.7rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--color-text-muted)}
+        td:nth-child(1)::before{content:"Backup"}
+        td:nth-child(2)::before{content:"Size"}
+        td:nth-child(3)::before{content:"Created"}
+        td:nth-child(4)::before{content:"Actions"}
+        td:nth-child(4){grid-template-columns:minmax(78px,.4fr) minmax(0,1fr)}
+        td:nth-child(4) > *{width:100%;margin:.15rem 0}
+        td:nth-child(4) form{display:block!important}
+        td:nth-child(4) .btn{display:block;width:100%;text-align:center}
+      }
     </style>
 {% endblock %}
 {% block extra_js %}
@@ -32,7 +53,7 @@
     </div>
 
     {% if backups %}
-      <table>
+      <div class="backup-table-wrap"><table>
         <thead>
           <tr>
             <th>Backup File</th>
@@ -61,7 +82,7 @@
           </tr>
           {% endfor %}
         </tbody>
-      </table>
+      </table></div>
     {% else %}
       <div class="empty">
         <p>No backups found yet.</p>
