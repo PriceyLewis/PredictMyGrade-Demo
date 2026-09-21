@@ -4,7 +4,6 @@
 {% block title %}Backup History{% endblock %}
 {% block extra_css %}
   {{ block.super }}
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <style>
       body { background:var(--color-bg); color:var(--color-text); font-family:Inter,sans-serif; }
       .page { max-width:1000px; margin:0 auto; padding:2rem 0; }
@@ -41,10 +40,6 @@
         td:nth-child(4) .btn{display:block;width:100%;text-align:center;white-space:nowrap}
       }
     </style>
-{% endblock %}
-{% block extra_js %}
-  {{ block.super }}
-  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 {% endblock %}
 {% block content %}
 <div class="page" data-aos="fade-up">
