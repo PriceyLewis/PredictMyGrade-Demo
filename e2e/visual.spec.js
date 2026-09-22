@@ -24,6 +24,8 @@ const screens = [
   ['settings', '/settings/', true],
   ['history', '/snapshot/history/', true],
   ['welcome', '/welcome/', true],
+  ['welcome-tour', '/welcome-tour/', true],
+  ['study-suggestions', '/study-suggestions/', true],
   ['pricing', '/pricing/', true],
   ['upgrade', '/upgrade/', true],
 ];
@@ -115,6 +117,16 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
               const header = page.locator('.offer-card__header');
               await expect(header).toBeVisible();
               expect(await header.evaluate(element => getComputedStyle(element).display)).toBe('grid');
+              for (const selector of ['#ucasPointsTable', '#offerTrackerTable', '#scenarioTable']) {
+                const tableLayout = await page.locator(selector).evaluate(element => ({
+                  width: element.getBoundingClientRect().width,
+                  scrollWidth: element.scrollWidth,
+                  minWidth: getComputedStyle(element).minWidth,
+                }));
+                expect(tableLayout.scrollWidth, selector + ' must fit without horizontal scrolling')
+                  .toBeLessThanOrEqual(tableLayout.width + 2);
+                expect(tableLayout.minWidth).toBe('0px');
+              }
             }
             if (name === 'upgrade') {
               await expect(page.locator('#upgrade-alert')).toBeHidden();

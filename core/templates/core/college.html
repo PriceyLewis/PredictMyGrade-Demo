@@ -136,11 +136,13 @@
     min-width: 560px;
   }
   @media (max-width: 640px) {
-    .college-dashboard .level-hero {
-      grid-template-columns: 1fr;
+    .college-dashboard .level-hero,
+    .hero-actions,
+    .college-dashboard .grid-2 {
+      grid-template-columns: minmax(0, 1fr);
     }
-    .hero-actions {
-      grid-template-columns: 1fr;
+    .college-dashboard .card {
+      min-width: 0;
     }
     .offer-toolbar {
       align-items: flex-start;
@@ -149,6 +151,10 @@
     .offer-alert {
       width: 100%;
       min-width: 0;
+    }
+    .offer-pill {
+      flex: 1 1 7rem;
+      justify-content: center;
     }
     .offer-card__header {
       display: grid;
@@ -164,8 +170,76 @@
       width: 100%;
     }
     .college-table-wrap {
+      overflow: visible;
+      border: 0;
+      background: transparent;
+    }
+    .college-table-wrap .table {
+      display: block;
+      width: 100%;
+      min-width: 0;
+    }
+    .college-table-wrap .table thead {
+      display: none;
+    }
+    .college-table-wrap .table tbody {
+      display: grid;
+      gap: 0.7rem;
+    }
+    .college-table-wrap .table tr {
+      display: grid;
+      gap: 0.45rem;
+      padding: 0.75rem;
       border: 1px solid var(--color-border);
+      border-radius: 12px;
       background: var(--color-surface);
+    }
+    .college-table-wrap .table td {
+      display: grid;
+      grid-template-columns: minmax(86px, .42fr) minmax(0, 1fr);
+      gap: 0.65rem;
+      align-items: start;
+      min-width: 0;
+      padding: 0.2rem 0;
+      border: 0;
+      overflow-wrap: anywhere;
+    }
+    .college-table-wrap .table td::before {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+    #ucasPointsTable td:nth-child(1)::before,
+    #scenarioTable td:nth-child(1)::before { content: "Subject"; }
+    #ucasPointsTable td:nth-child(2)::before { content: "Recorded"; }
+    #ucasPointsTable td:nth-child(3)::before { content: "Predicted"; }
+    #ucasPointsTable td:nth-child(4)::before { content: "Tariff"; }
+    #offerTrackerTable td:nth-child(1)::before { content: "University / course"; }
+    #offerTrackerTable td:nth-child(2)::before { content: "Tariff"; }
+    #offerTrackerTable td:nth-child(3)::before { content: "Status & details"; }
+    #offerTrackerTable td:nth-child(4)::before { content: "Remove"; }
+    #scenarioTable td:nth-child(2)::before { content: "Qualification"; }
+    #scenarioTable td:nth-child(3)::before { content: "Grade"; }
+    #scenarioTable td:nth-child(4)::before { content: "Action"; }
+    .college-table-wrap .table td[colspan] {
+      display: block;
+    }
+    .college-table-wrap .table td[colspan]::before {
+      display: none;
+    }
+    #offerTrackerTable .inline-form {
+      display: grid;
+      grid-template-columns: 1fr;
+      width: 100%;
+    }
+    #offerTrackerTable .form-field,
+    #offerTrackerTable input,
+    #offerTrackerTable select,
+    #offerTrackerTable button {
+      min-width: 0;
+      width: 100%;
     }
   }
 </style>
