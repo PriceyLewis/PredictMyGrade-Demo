@@ -655,9 +655,14 @@
   gap: 1rem;
 }
 
+.settings-dashboard > .grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
 .settings-dashboard .settings-form {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 1rem;
   padding: 1rem;
@@ -669,6 +674,8 @@
 }
 
 .settings-dashboard .settings-form__copy {
+  grid-column: 1 / -1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -687,6 +694,7 @@
 }
 
 .settings-dashboard .settings-form .form-field {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -791,6 +799,9 @@
 }
 
 @media (max-width: 900px) {
+  .settings-dashboard > .grid-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .settings-dashboard .settings-form {
     grid-template-columns: 1fr;
   }

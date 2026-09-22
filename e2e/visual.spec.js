@@ -65,6 +65,24 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
               await expect(page.locator('main.page')).toBeVisible();
               await expect(page.locator('[data-cookie-banner]')).toBeVisible();
             }
+            if (name === 'settings') {
+              for (const form of await page.locator('.settings-form').all()) {
+                const layout = await form.evaluate(element => {
+                  const rect = element.getBoundingClientRect();
+                  const select = element.querySelector('select').getBoundingClientRect();
+                  const button = element.querySelector('button').getBoundingClientRect();
+                  const copy = element.querySelector('.settings-form__copy').getBoundingClientRect();
+                  const overlap = Math.min(select.right, button.right) > Math.max(select.left, button.left) + 1 &&
+                    Math.min(select.bottom, button.bottom) > Math.max(select.top, button.top) + 1;
+                  return { overlap, inside: select.left >= rect.left && select.right <= rect.right,
+                    copyAbove: copy.bottom <= select.top, width: select.width };
+                });
+                expect(layout.overlap).toBe(false);
+                expect(layout.inside).toBe(true);
+                expect(layout.copyAbove).toBe(true);
+                expect(layout.width).toBeGreaterThan(150);
+              }
+            }
             if (name === 'welcome') {
               await expect(page.locator('.feature-card').first()).toContainText('Grade Tracker');
               const readable = await page.locator('.feature-card').first().evaluate(element => {
